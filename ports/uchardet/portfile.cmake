@@ -1,10 +1,15 @@
-vcpkg_from_git(
+vcpkg_from_gitlab(
+    GITLAB_URL https://gitlab.freedesktop.org
     OUT_SOURCE_PATH SOURCE_PATH
-    URL https://gitlab.freedesktop.org/uchardet/uchardet
-    REF 6f38ab95f55afd45ee6ccefcb92d21034b4a2521
+    REPO uchardet/uchardet
+    REF "v${VERSION}"
+    SHA512 8d7a0abe1fcf7e92f9e264252eefa5810176603e3d3d825a23c3f5d23cd4f7cce9a0a9539e84bd70af5b66688394e48af00a00ce759a5a3d69b650f92351b6f2
+    HEAD_REF master
     PATCHES
         fix-uwp-build.patch
+        fix-config-error.patch
 )
+
 
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -26,7 +31,11 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/uchardet)
+
 vcpkg_copy_pdbs()
+
+vcpkg_fixup_pkgconfig()
 
 if(tool IN_LIST FEATURES)
     vcpkg_copy_tools(TOOL_NAMES uchardet AUTO_CLEAN)
@@ -38,6 +47,4 @@ file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/share/man"
 )
 
-file(INSTALL "${SOURCE_PATH}/COPYING" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
-
-vcpkg_fixup_pkgconfig()
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/COPYING")

@@ -2,8 +2,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO beached/header_libraries
-    REF bd372e81e04e256a6ba88217c4b99a3601fb5ef7 #v1.29.7
-    SHA512 7aad017e70e79c3244011cbcb719afb385a639e1e4d37955be074bd1d2f501052dcae9347d094a8ef970f3762ebdfe33c90318b2e6891f4b354e823acfee7188
+    REF "v${VERSION}"
+    SHA512 39042e60a5d6d3380dc70f28a88f436c0b40999bce9dc3ac3499ef4380bb1085f4b90c53f3c900e63a9b443a2f4d6424afcf68c4b196a76cf0330aaf722ca6ff
     HEAD_REF master
 )
 
@@ -15,4 +15,4 @@ vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/${PORT})
 # remove empty lib and debug/lib directories (and duplicate files from debug/include)
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug" "${CURRENT_PACKAGES_DIR}/lib")
 
-file(INSTALL "${SOURCE_PATH}/LICENSE.md" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.md")

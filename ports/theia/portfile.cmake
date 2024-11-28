@@ -8,16 +8,20 @@ vcpkg_from_github(
     HEAD_REF master
     PATCHES
         fix-external-dependencies.patch
+        fix-external-dependencies2.patch
+        eigen-3.4.patch
+        266.diff
+        fix-last-openimageio.patch
 )
 
-file(REMOVE ${SOURCE_PATH}/cmake/FindSuiteSparse.cmake)
-file(REMOVE ${SOURCE_PATH}/cmake/FindGflags.cmake)
-file(REMOVE ${SOURCE_PATH}/cmake/FindGlog.cmake)
-file(REMOVE ${SOURCE_PATH}/cmake/FindEigen.cmake)
+file(REMOVE "${SOURCE_PATH}/cmake/FindSuiteSparse.cmake")
+file(REMOVE "${SOURCE_PATH}/cmake/FindOpenImageIO.cmake")
+file(REMOVE "${SOURCE_PATH}/cmake/FindGflags.cmake")
+file(REMOVE "${SOURCE_PATH}/cmake/FindGlog.cmake")
+file(REMOVE "${SOURCE_PATH}/cmake/FindEigen.cmake")
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DCMAKE_CXX_STANDARD=14
         -DCMAKE_CXX_EXTENSIONS=OFF
@@ -25,22 +29,28 @@ vcpkg_configure_cmake(
         -DBUILD_TESTING=OFF
         -DTHEIA_USE_EXTERNAL_CEREAL=ON
         -DTHEIA_USE_EXTERNAL_FLANN=ON
+        -DCMAKE_POLICY_DEFAULT_CMP0012=NEW
+        -DCMAKE_POLICY_DEFAULT_CMP0057=NEW
+    MAYBE_UNUSED_VARIABLES
+        CMAKE_POLICY_DEFAULT_CMP0012
+        THEIA_USE_EXTERNAL_CEREAL
+        THEIA_USE_EXTERNAL_FLANN
 )
 
-vcpkg_install_cmake()
-vcpkg_fixup_cmake_targets()
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup()
 vcpkg_copy_pdbs()
 
 # Clean
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/optimo)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/optimo)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/theia/libraries/akaze/cimg/cmake-modules)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/theia/libraries/akaze/cmake)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/theia/libraries/akaze/datasets)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/theia/libraries/spectra/doxygen)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/optimo")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/optimo")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/theia/libraries/akaze/cimg/cmake-modules")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/theia/libraries/akaze/cmake")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/theia/libraries/akaze/datasets")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/theia/libraries/spectra/doxygen")
 
 # Handle copyright
-file(INSTALL ${SOURCE_PATH}/license.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
-file(COPY ${SOURCE_PATH}/data/camera_sensor_database_license.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT})
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/license.txt")
+file(COPY "${SOURCE_PATH}/data/camera_sensor_database_license.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")

@@ -1,14 +1,13 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO stevengj/nlopt
-    REF v2.7.0
-    SHA512 3c41cab357b50adf50fe2d6225409ade8c5e8ee3576e3680ab29dded29ed7d328bc3d51d3a50054630159c319dca69e47ff08dc5df891b180b7d7e8fcbc27694
+    REF "v${VERSION}"
+    SHA512 cb294caa5532e11ae0d22ed849705920bbae79f712144c840a5ca865ef8e6a15c6c9540c81ced0c3c05b9f44c360d50f74e235e69d893be34b7e1c5599f07c71
     HEAD_REF master
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DNLOPT_FORTRAN=OFF
         -DNLOPT_PYTHON=OFF
@@ -18,14 +17,16 @@ vcpkg_configure_cmake(
         -DNLOPT_SWIG=OFF
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 vcpkg_copy_pdbs()
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/nlopt)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/nlopt)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 
-file(INSTALL ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/COPYING")
+
+vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/nlopt/NLoptConfig.cmake" "/../../" "/../")
 
 vcpkg_fixup_pkgconfig()

@@ -1,25 +1,22 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO hosseinmoein/DataFrame
-    REF 1.19.0
-    SHA512 4415644b04d9c3b5ab3487ee896d0f020f0659d71b8bc128a649e14c6edb22c4848d228016a0108a122060d5aa9452260a3936761cf228eb7a7a436a64f031ff
+    REF "${VERSION}"
+    SHA512 0586c114091dcc030d25a16dfe5f8bc9eeaedd1f8d7be6ceeb14538fd848fab45515367de0bb095b8a91b4570111a76c37ffe1cb406b136afef2dcf0fd977ac7
     HEAD_REF master
 )
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        -DENABLE_TESTING:BOOL=OFF
+        -DHMDF_TESTING:BOOL=OFF
 )
 
 vcpkg_cmake_install()
 
-if(VCPKG_TARGET_IS_WINDOWS)
-    vcpkg_cmake_config_fixup(CONFIG_PATH cmake)
-else()
-    vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/DataFrame)
-endif()
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/DataFrame)
+
 vcpkg_fixup_pkgconfig()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-file(INSTALL "${SOURCE_PATH}/License" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/License")

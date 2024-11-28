@@ -1,11 +1,12 @@
-vcpkg_fail_port_install(ON_TARGET "OSX" "UWP" ON_ARCH "x86")
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Ryan-rsm-McKenzie/bsa
-    REF 4.0.0
-    SHA512 9be077349cea3f4c6f2298c6286fd306f370c560d9e474516dfd7ab8dcd2313032581f86f9b4f5afb5ccd2dbb4e57663e16997253421033e00186167db15576a
+    REF 4.1.0
+    SHA512 c488a4f7cffa59064baafd429cf118a8f8a7b5594a0bd49a0ed468572b37af2e7428a83ad83cc7b13b556744a444cb7b8a4591c7018e49cadb1c5d42ae780f51
     HEAD_REF master
+    PATCHES
+        DirectXTexUint8Byte.patch
 )
 
 if (VCPKG_TARGET_IS_LINUX)
@@ -17,13 +18,6 @@ vcpkg_check_features(
     FEATURES
         xmem BSA_SUPPORT_XMEM
 )
-
-if (BSA_SUPPORT_XMEM)
-    vcpkg_fail_port_install(
-        ON_TARGET "LINUX"
-        MESSAGE "XMem support is only available for windows"
-    )
-endif()
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"

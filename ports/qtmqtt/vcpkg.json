@@ -1,8 +1,9 @@
 {
   "name": "qtmqtt",
-  "version-semver": "6.2.1",
-  "description": "Qt Module to implement MQTT protocol version 3.1 and 3.1.1 http://mqtt.org/",
+  "version": "6.8.0",
+  "description": "The Qt MQTT module provides a standard compliant implementation of the MQTT protocol specification.",
   "homepage": "https://www.qt.io/",
+  "license": null,
   "dependencies": [
     {
       "name": "qtbase",

@@ -1,36 +1,69 @@
 {
   "name": "qtmultimedia",
-  "version-semver": "6.2.1",
-  "description": "Qt Multimedia",
+  "version": "6.8.0",
+  "port-version": 1,
+  "description": "Qt Multimedia is an add-on module that provides a rich set of QML types and C++ classes to handle multimedia content.",
   "homepage": "https://www.qt.io/",
+  "license": null,
   "dependencies": [
-    {
-      "name": "alsa",
-      "platform": "linux"
-    },
     {
       "name": "qtbase",
       "default-features": false,
       "features": [
+        "concurrent",
         "gui",
         "network"
       ]
     },
     {
       "name": "qtshadertools",
-      "host": true,
       "default-features": false
     }
   ],
   "default-features": [
+    {
+      "name": "gstreamer",
+      "platform": "linux"
+    },
     "widgets"
   ],
   "features": {
+    "ffmpeg": {
+      "description": "Build with ffmpeg",
+      "dependencies": [
+        {
+          "name": "ffmpeg",
+          "default-features": false,
+          "features": [
+            "avcodec",
+            "avdevice",
+            "avformat",
+            "swresample",
+            "swscale"
+          ]
+        },
+        {
+          "name": "pulseaudio",
+          "platform": "linux"
+        },
+        {
+          "name": "qtdeclarative",
+          "default-features": false
+        }
+      ]
+    },
     "gstreamer": {
       "description": "Build with gstreamer",
+      "supports": "linux",
       "dependencies": [
-        "angle",
-        "gstreamer"
+        "egl",
+        {
+          "name": "gstreamer",
+          "default-features": false,
+          "features": [
+            "plugins-base"
+          ]
+        }
       ]
     },
     "qml": {

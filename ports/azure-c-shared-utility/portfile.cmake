@@ -1,49 +1,38 @@
-vcpkg_fail_port_install(ON_TARGET "UWP")
-
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
-if("public-preview" IN_LIST FEATURES)
-    vcpkg_from_github(
-        OUT_SOURCE_PATH SOURCE_PATH
-        REPO Azure/azure-c-shared-utility
-        REF 42574842914591aadc77701aac72f18cc72319ad
-        SHA512 dfe6ccede4bebdb3a39fbfea1dc55ddca57cced0d2656ee4bed1a5e5c9c434e1f2d892eb4e29bbb424cb9a02f2374a95fb9a020442bea580d39c242efad1b789
-        HEAD_REF master
-        PATCHES
-            fix-utilityFunctions-conditions-preview.patch
-            disable-error.patch
-    )
-else()
-    vcpkg_from_github(
-        OUT_SOURCE_PATH SOURCE_PATH
-        REPO Azure/azure-c-shared-utility
-        REF 73a2039cc0de5ececf5755ebe731a6b5b98f85da
-        SHA512 6374b7b175a5c0206bee148c35eb6a3a79f1b149e87d2b51981a9fd1446809134a1aa0f28f4acf1318719ac5554f7bd8de225a5dca63eb6537012aed6b10e4cc
-        HEAD_REF master
-        PATCHES
-            fix-utilityFunctions-conditions.patch
-            disable-error.patch
-    )
-endif()
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO Azure/azure-c-shared-utility
+    REF 51d6f3f7246876051f713c7abed28f909bf604e3
+    SHA512 f0d88f10905739c30f43bf20861d99e7146d95ae80f1bd56979b22ef57fbbe9825bf3be9b937806e65c881ef1ba4932dc783fbabfa8ca80cc80329a409f8c20b
+    HEAD_REF master
+    PATCHES
+        fix-install-location.patch
+        fix-utilityFunctions-conditions.patch
+        disable-error.patch
+        improve-dependencies.patch
+        modify-POSIX-c-version.patch
+)
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -Dskip_samples=ON
         -Duse_installed_dependencies=ON
         -Duse_default_uuid=ON
         -Dbuild_as_dynamic=OFF
+    MAYBE_UNUSED_VARIABLES
+        build_as_dynamic
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH cmake TARGET_PATH share/azure_c_shared_utility)
+vcpkg_cmake_config_fixup(PACKAGE_NAME azure_c_shared_utility CONFIG_PATH lib/cmake/azure_c_shared_utility)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include" "${CURRENT_PACKAGES_DIR}/debug/share")
 
-file(COPY ${SOURCE_PATH}/configs/azure_iot_build_rules.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT})
+file(COPY "${SOURCE_PATH}/configs/azure_iot_build_rules.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 
-configure_file(${SOURCE_PATH}/LICENSE ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright COPYONLY)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
 
 vcpkg_copy_pdbs()

@@ -1,36 +1,37 @@
-# AVIF depends on AOM, but AOM doesn't support ARM and UWP
-vcpkg_fail_port_install(ON_ARCH "arm" ON_TARGET "UWP")
-
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO AOMediaCodec/libavif
-    REF v0.9.2
-    SHA512 04400ae76214d2f0361a14897d6ee97be675375865bb96c8d237e9a4a1152ac1a966db903c11df82da71b0bc68599a5857e038cc90d63c5d3bc77b13169a3e75
+    REF "v${VERSION}"
+    SHA512 ba72b8d02b098f361643a073361fccafd22eaac14e46dd06378d5e7acd9853538c5d166473e1de0b020de62dac25be83e42bd57ba51f675d11e2ddf155fbfa21
     HEAD_REF master
     PATCHES
+        dependencies.diff
         disable-source-utf8.patch
 )
+file(REMOVE_RECURSE "${SOURCE_PATH}/third_party")
+
+set(FEATURE_OPTIONS "")
+if("aom" IN_LIST FEATURES)
+    list(APPEND FEATURE_OPTIONS "-DAVIF_CODEC_AOM=SYSTEM")
+endif()
+if("dav1d" IN_LIST FEATURES)
+    list(APPEND FEATURE_OPTIONS "-DAVIF_CODEC_DAV1D=SYSTEM")
+endif()
+
+vcpkg_find_acquire_program(PKGCONFIG)
 
 vcpkg_cmake_configure(
-    SOURCE_PATH ${SOURCE_PATH}
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        -DAVIF_CODEC_AOM=ON
-        -DAVIF_BUILD_APPS=OFF
+        ${FEATURE_OPTIONS}
+        "-DPKG_CONFIG_EXECUTABLE=${PKGCONFIG}"
 )
-
 vcpkg_cmake_install()
-
 vcpkg_copy_pdbs()
-
-# Move cmake configs
+vcpkg_fixup_pkgconfig()
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/${PORT})
 
-# Fix pkg-config files
-vcpkg_fixup_pkgconfig()
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include"
+                    "${CURRENT_PACKAGES_DIR}/debug/share")
 
-# Remove duplicate files
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include
-                    ${CURRENT_PACKAGES_DIR}/debug/share)
-
-# Handle copyright
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

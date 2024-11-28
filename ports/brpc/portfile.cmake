@@ -1,34 +1,40 @@
-vcpkg_fail_port_install(ON_TARGET "windows")
+vcpkg_download_distfile(
+    PROTOBUF_V5_PATCH
+    URLS https://github.com/apache/brpc/commit/282776acaf2c894791d2b5d4c294a28cfa2d4138.patch?full_index=1
+    SHA512 2e62617ed56047a037f0e673a7dcc43e02c9bff46b6c9d1ae0098e4c73630f1a9a67c113e770bf1cc12d86d273f88f504f83af1ed69ee771f35cccac1a472990
+    FILENAME 282776acaf2c894791d2b5d4c294a28cfa2d4138.patch
+)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO apache/incubator-brpc
-    REF 1d6510aa50075cade5ed539ee09a11a1b8d7f990 # 0.9.7
-    SHA512 9c9dbe2a202e58586010c56634bd371f6a9e3ff0d8c5341abbabd1f1dd204a3aec5e89061fa326b4fc8ae7202f9fc33f93a5acd845d18dab3915a3e2b81cbaf3
+    REPO apache/brpc
+    REF "${VERSION}"
+    SHA512 eb2f9528f055a31db5b2bbf57d302b17d2229d387c3bc6afd7dec5f3d21d1f882275d43d49c04cb5190442c2daa746ac2a174b3741d943e531ebbbd82526d510
     HEAD_REF master
     PATCHES
-        fix_boost_ptr.patch
-        fix_thrift.patch
-        fix-protobuf-deprecated.patch
+        fix-build.patch
+        fix-warnings.patch
+        ${PROTOBUF_V5_PATCH}
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    DISABLE_PARALLEL_CONFIGURE
     OPTIONS
+        -DBUILD_BRPC_TOOLS=OFF
         -DWITH_THRIFT=ON
-        -DWITH_MESALINK=OFF
         -DWITH_GLOG=ON
+        -DDOWNLOAD_GTEST=OFF
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(PACKAGE_NAME unofficial-brpc CONFIG_PATH share/unofficial-brpc)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/butil/third_party/superfasthash")
 
 vcpkg_copy_pdbs()
 
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
 
 vcpkg_fixup_pkgconfig()

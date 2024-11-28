@@ -1,25 +1,24 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO team-charls/charls
-    REF 0bafe4ecdc591f633303ad0d32f3f6c38d099802 #v2.2.0
-    SHA512 56acb0085a4f653660166c11982934d7f8c8836db63339aaca700aabade2bf7cff8cba77f9f04a68bbc119b5b15800bf01ffb10628703fb2188f6e654d0e5f22
+    REF "${VERSION}"
+    SHA512 4f1b587f008956ab6fb9d2473c37a7b1a842633113245be7f8bb29b8c64304a6d580a29fcfca97ba1ac75adedbaf89e29adc4ac9e4117e1af1aa5949dbd34df9
     HEAD_REF master
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DCHARLS_BUILD_TESTS=OFF
         -DCHARLS_BUILD_SAMPLES=OFF
         -DCHARLS_BUILD_FUZZ_TEST=OFF
 )
 
-vcpkg_install_cmake()
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/charls)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/charls)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-file(INSTALL ${SOURCE_PATH}/LICENSE.md DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.md")
 
 vcpkg_copy_pdbs()
 

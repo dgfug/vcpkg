@@ -1,43 +1,36 @@
-vcpkg_fail_port_install(ON_TARGET "Windows")
-
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO facebook/proxygen
-    REF v2021.06.14.00
-    SHA512 f5ab54514575f86897438f40a481796c34031101775b61a01581338c91686159995e4f822909e42eed4c006b2c6a6351887d469cc9df1df80711dba10cc15a19
-    HEAD_REF master
+    REF "v${VERSION}"
+    SHA512 a8fad342016dea2cd2c2e83f474bd4928643de1207b819afb8bd67bbb83551afa437f87d90040f84a12191c553c09e5bb181a920016f60713883918372599c39
+    HEAD_REF main
     PATCHES
         remove-register.patch
-        fix-duplicated-target.patch # fixed in master
+        fix-zstd-zlib-dependency.patch
+        fix-dependency.patch
 )
 
 vcpkg_find_acquire_program(PYTHON3)
-get_filename_component(PYTHON3_PATH ${PYTHON3} DIRECTORY)
+get_filename_component(PYTHON3_PATH "${PYTHON3}" DIRECTORY)
 vcpkg_add_to_path(${PYTHON3_PATH})
 
-if (VCPKG_TARGET_IS_WINDOWS)
-    vcpkg_find_acquire_program(GPERF)
-    get_filename_component(GPERF_PATH ${GPERF} DIRECTORY)
-    vcpkg_add_to_path(${GPERF_PATH})
-else()
-    # gperf only have windows package in vcpkg now.
-    if (NOT EXISTS /usr/bin/gperf)
-        message(FATAL_ERROR "proxygen requires gperf, these can be installed on Ubuntu systems via apt-get install gperf.")
-    endif()
-endif()
+vcpkg_add_to_path(PREPEND "${CURRENT_HOST_INSTALLED_DIR}/tools/gperf")
 
-vcpkg_configure_cmake(
+vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 
-vcpkg_copy_tools(TOOL_NAMES proxygen_curl proxygen_echo proxygen_proxy proxygen_push proxygen_static AUTO_CLEAN)
+vcpkg_copy_tools(TOOL_NAMES hq proxygen_curl proxygen_echo proxygen_h3datagram_client proxygen_httperf2 proxygen_proxy proxygen_push proxygen_static AUTO_CLEAN)
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/proxygen)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/proxygen)
 vcpkg_copy_pdbs()
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
+endif()
+
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

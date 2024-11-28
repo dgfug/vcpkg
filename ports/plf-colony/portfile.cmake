@@ -3,12 +3,11 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO mattreecebentley/plf_colony
-    REF e6e563b63dd9e64fc2fcc66a757e366641e62f01
-    SHA512 61723a47387fb3ce9a342fbd6db11369774c1a5c5d28ba2db1fee3396a0588a0e9df50cbcaa4561f409d34ddadc17ae61dba29606aa6481647f3bcd003cfaafa
+    REF abb0aa6525a3dae56aacf50899517f47e7036016
+    SHA512 6a854827b29f4c7fd6d7bae2b62d0b86064cb56ca5484fb262dfe7402a0da3a29834ebc075693bc5d3f9d348ee5b7dc5ae974b7b477bd3409c0927ce15961bd9
     HEAD_REF master
 )
 
-file(COPY ${SOURCE_PATH}/plf_colony.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(COPY "${SOURCE_PATH}/plf_colony.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
 
-# Handle copyright
-configure_file(${SOURCE_PATH}/LICENSE.md ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright COPYONLY)
+file(INSTALL "${SOURCE_PATH}/LICENSE.md" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

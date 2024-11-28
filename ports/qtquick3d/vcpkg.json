@@ -1,9 +1,12 @@
 {
   "name": "qtquick3d",
-  "version-semver": "6.2.1",
-  "description": "A new module and API for defining 3D content in Qt Quick.",
+  "version": "6.8.0",
+  "port-version": 1,
+  "description": "Qt Quick 3D provides a high-level API for creating 3D content and 3D user interfaces based on Qt Quick.",
   "homepage": "https://www.qt.io/",
+  "license": null,
   "dependencies": [
+    "meshoptimizer",
     {
       "name": "qtbase",
       "default-features": false,
@@ -25,7 +28,6 @@
   ],
   "features": {
     "assimp": {
-      "$comment": "feature assimp requires a newer version of assimp than available within vcpkg. Install assimp with e.g. --head or use an overlay",
       "description": "assimp",
       "dependencies": [
         "assimp"

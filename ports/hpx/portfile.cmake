@@ -1,13 +1,32 @@
-
-vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
+if(VCPKG_TARGET_IS_WINDOWS)
+    vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
+endif()
+string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" HPX_WITH_STATIC_LINKING)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO STEllAR-GROUP/hpx
-    REF 1.7.1
-    SHA512 6bdb294da393a198abf81d5f63799a066334755eed0fda40bbfc4e9a774b6e19a3e5ad7ab45c989d31f3797e7b547bb552c29f51b552d9a79d166f86aee375a3
-    HEAD_REF stable
+    REF "v${VERSION}"
+    SHA512 e1cc9fa72cba4e66b5d6eff2487e93d5d553c32e6eebcfe9131bf69c5b595ab72295ff0986c81d5dc6a7caa8303d6709df91333f64efe59ee256d99a8c289dc5
+    HEAD_REF master
 )
+
+vcpkg_check_features(
+    OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+    "zlib"              HPX_WITH_COMPRESSION_ZLIB
+    "snappy"            HPX_WITH_COMPRESSION_SNAPPY
+    "bzip2"             HPX_WITH_COMPRESSION_BZIP2
+    "cuda"              HPX_WITH_CUDA
+    "mpi"               HPX_WITH_PARCELPORT_MPI
+    "mpi"               HPX_WITH_PARCELPORT_MPI_MULTITHREADED
+)
+
+if(NOT VCPKG_TARGET_ARCHITECTURE MATCHES "(x64|x86)")
+    list(APPEND FEATURE_OPTIONS "-DHPX_WITH_GENERIC_CONTEXT_COROUTINES=ON")
+endif()
+
+file(REMOVE "${SOURCE_PATH}/cmake/FindBZip2.cmake") # Outdated
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
@@ -17,8 +36,16 @@ vcpkg_cmake_configure(
         -DHPX_WITH_EXAMPLES=OFF
         -DHPX_WITH_TOOLS=OFF
         -DHPX_WITH_RUNTIME=OFF
+        -DHPX_USE_CMAKE_CXX_STANDARD=ON
+        ${FEATURE_OPTIONS}
+        -DHPX_WITH_PKGCONFIG=OFF
+        -DHPX_WITH_STATIC_LINKING=${HPX_WITH_STATIC_LINKING}
+        -DHPX_WITH_PARCELPORT_TCP=ON
+        -DHPX_WITH_THREAD_TARGET_ADDRESS=ON
+        -DHPX_WITH_CHECK_MODULE_DEPENDENCIES=ON
+        -DHPX_WITH_THREAD_IDLE_RATES=ON
+        -DVCPKG_HOST_TRIPLET=${_HOST_TRIPLET}
 )
-
 vcpkg_cmake_install()
 
 # post build cleanup
@@ -52,36 +79,21 @@ file(INSTALL
     "${SOURCE_PATH}/LICENSE_1_0.txt"
     DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
 
-file(GLOB DLLS "${CURRENT_PACKAGES_DIR}/lib/*.dll")
-if(DLLS)
-    file(COPY ${DLLS} DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
-    file(REMOVE ${DLLS})
-endif()
-
-file(GLOB DLLS "${CURRENT_PACKAGES_DIR}/lib/hpx/*.dll")
-if(DLLS)
-    file(COPY ${DLLS} DESTINATION "${CURRENT_PACKAGES_DIR}/bin/hpx")
-    file(REMOVE ${DLLS})
-endif()
-
-file(GLOB DLLS "${CURRENT_PACKAGES_DIR}/debug/lib/*.dll")
-if(DLLS)
-    file(COPY ${DLLS} DESTINATION "${CURRENT_PACKAGES_DIR}/debug/bin")
-    file(REMOVE ${DLLS})
-endif()
-
-file(GLOB DLLS "${CURRENT_PACKAGES_DIR}/debug/lib/hpx/*.dll")
-if(DLLS)
-    file(COPY ${DLLS} DESTINATION "${CURRENT_PACKAGES_DIR}/debug/bin/hpx")
-    file(REMOVE ${DLLS})
-endif()
-
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 
 vcpkg_fixup_pkgconfig()
 
-vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/bin/hpxcxx" "\"${CURRENT_PACKAGES_DIR}\"" "os.path.dirname(os.path.dirname(os.path.realpath(__file__)))")
-vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/debug/bin/hpxcxx" "\"${CURRENT_PACKAGES_DIR}/debug\"" "os.path.dirname(os.path.dirname(os.path.realpath(__file__)))")
+file(REMOVE "${CURRENT_PACKAGES_DIR}/bin/hpxcxx" "${CURRENT_PACKAGES_DIR}/debug/bin/hpxcxx")
 
-vcpkg_copy_pdbs()
+if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/hpxrun.py")
+    file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
+    file(RENAME "${CURRENT_PACKAGES_DIR}/bin/hpxrun.py" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/hpxrun.py")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/tools/${PORT}/hpxrun.py" "'${CURRENT_INSTALLED_DIR}/tools/openmpi/bin/mpiexec'" "'mpiexec'" IGNORE_UNCHANGED)
+endif()
+
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
+endif()
+
+configure_file("${CMAKE_CURRENT_LIST_DIR}/usage" "${CURRENT_PACKAGES_DIR}/share/${PORT}/usage" COPYONLY)

@@ -3,17 +3,15 @@ message(WARNING "qtkeychain is a third-party extension to Qt and is not affiliat
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO frankosterfeld/qtkeychain
-    REF v0.13.1
-    SHA512 552c1632a81f64b91dacdb0f5eb4122b4ddef53ba6621561db6c4fce9f3692761dbc4b452e578023e2882e049874148be1de014397675ce443cfc93fe96f6f70
+    REF "${VERSION}"
+    SHA512 d1d87553db94bf54da1373016a847476e6cd608db6d427ed72532658e2272501daf45d7c9976efdde2f26ab3810ba9dbfec2518d46dee5a76ecaa369bfee2e4a
     HEAD_REF master
 )
 
-list(APPEND QTKEYCHAIN_OPTIONS -DBUILD_TEST_APPLICATION:BOOL=OFF)
-# TODO: remove after next release since https://github.com/frankosterfeld/qtkeychain/pull/204 was merged
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    list(APPEND QTKEYCHAIN_OPTIONS -DQTKEYCHAIN_STATIC:BOOL=ON)
-else()
-    list(APPEND QTKEYCHAIN_OPTIONS -DQTKEYCHAIN_STATIC:BOOL=OFF)
+# Opportunity to build without dependency on qt5-tools/qt5-declarative
+set(BUILD_TRANSLATIONS OFF)
+if("translations" IN_LIST FEATURES)
+    set(BUILD_TRANSLATIONS ON)
 endif()
 
 vcpkg_cmake_configure(
@@ -21,7 +19,8 @@ vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
     OPTIONS
         -DBUILD_WITH_QT6=OFF
-        ${QTKEYCHAIN_OPTIONS}
+        -DBUILD_TEST_APPLICATION=OFF
+        -DBUILD_TRANSLATIONS=${BUILD_TRANSLATIONS}
 )
 vcpkg_cmake_install()
 

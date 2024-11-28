@@ -1,8 +1,9 @@
 {
   "name": "qtlocation",
-  "version-semver": "6.2.1",
-  "description": "Qt Location",
+  "version": "6.8.0",
+  "description": "The Qt Location API helps you create viable mapping solutions using the data available from some of the popular location services.",
   "homepage": "https://www.qt.io/",
+  "license": null,
   "dependencies": [
     {
       "name": "qtbase",
@@ -15,30 +16,17 @@
         "dbus"
       ],
       "platform": "linux"
-    }
-  ],
-  "features": {
-    "nmea": {
-      "description": "Build with nmea",
-      "dependencies": [
-        {
-          "name": "qtbase",
-          "default-features": false,
-          "features": [
-            "network"
-          ]
-        },
-        "qtserialport"
+    },
+    {
+      "name": "qtpositioning",
+      "default-features": false,
+      "features": [
+        "qml"
       ]
     },
-    "qml": {
-      "description": "Build QML imports",
-      "dependencies": [
-        {
-          "name": "qtdeclarative",
-          "default-features": false
-        }
-      ]
+    {
+      "name": "qtshadertools",
+      "default-features": false
     }
-  }
+  ]
 }

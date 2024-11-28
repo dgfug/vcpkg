@@ -1,11 +1,22 @@
-vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+if(VCPKG_TARGET_IS_WINDOWS)
+    vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+endif()
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/SEAL
-    REF 608fb1b9717ec6effe707758a636e0a0df76fc26
-    SHA512 4d73e44955dcf7424318d1f46dd2b38b08592fd649a208953dbb9da30e7befdb6bf9f50ab364732d0ded7c9d977fd9bbad9fd1e2d2ff6ea2931d418a87be6d27
+    REF "v${VERSION}"
+    SHA512 8e97e8106ae2eeceee743634b0db1936b3a3a1381ceceb5646f6de8008d2147cdc9b847219dafd7d8b8f7457e63c7463f155694e8a192d13531171b468e8f365
     HEAD_REF main
+    PATCHES
+        shared-zstd.patch
+        fix-hexl.patch
+)
+
+vcpkg_replace_string(
+    "${SOURCE_PATH}/cmake/CheckCXXIntrinsicsSpecific.cmake"
+    "check_cxx_source_runs"
+    "check_cxx_source_compiles"
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -19,24 +30,24 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
 )
 
 vcpkg_cmake_configure(
-    SOURCE_PATH ${SOURCE_PATH}
-    DISABLE_PARALLEL_CONFIGURE
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        "-DSEAL_BUILD_DEPS=OFF"
-        "-DSEAL_BUILD_EXAMPLES=OFF"
-        "-DSEAL_BUILD_TESTS=OFF"
-        "-DSEAL_BUILD_SEAL_C=OFF"
+        -DSEAL_BUILD_DEPS=OFF
+        -DSEAL_BUILD_EXAMPLES=OFF
+        -DSEAL_BUILD_TESTS=OFF
+        -DSEAL_BUILD_SEAL_C=OFF
         ${FEATURE_OPTIONS}
 )
 
 vcpkg_cmake_install()
 
-vcpkg_cmake_config_fixup(PACKAGE_NAME "SEAL" CONFIG_PATH "lib/cmake/SEAL-3.7")
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/SEAL-4.1)
 
-vcpkg_fixup_pkgconfig()
+# provides pkgconfig files only on UNIX
+if(NOT VCPKG_TARGET_IS_WINDOWS)
+    vcpkg_fixup_pkgconfig()
+endif()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME "copyright")
-
-vcpkg_copy_pdbs()
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

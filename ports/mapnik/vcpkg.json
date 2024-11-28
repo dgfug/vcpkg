@@ -1,13 +1,15 @@
 {
   "name": "mapnik",
-  "version-date": "2021-10-18",
+  "version-date": "2024-04-18",
   "description": "Mapnik is an open source toolkit for developing mapping applications.",
   "homepage": "https://github.com/mapnik/mapnik",
-  "supports": "!(static & windows)",
+  "license": "LGPL-2.1-only",
+  "supports": "!xbox",
   "dependencies": [
     "boost-assign",
     "boost-bimap",
     "boost-filesystem",
+    "boost-format",
     "boost-geometry",
     "boost-gil",
     "boost-interprocess",
@@ -83,7 +85,10 @@
       "description": "Grid renderer"
     },
     "input-csv": {
-      "description": "CSV input plugin"
+      "description": "CSV input plugin",
+      "dependencies": [
+        "boost-algorithm"
+      ]
     },
     "input-gdal": {
       "description": "GDAL input plugin",
@@ -109,19 +114,20 @@
     "input-pgraster": {
       "description": "PGRASTER input plugin",
       "dependencies": [
-        "libodb-pgsql",
         "libpq"
       ]
     },
     "input-postgis": {
       "description": "POSTGIS input plugin",
       "dependencies": [
-        "libodb-pgsql",
         "libpq"
       ]
     },
     "input-raster": {
-      "description": "RASTER input plugin"
+      "description": "RASTER input plugin",
+      "dependencies": [
+        "boost-format"
+      ]
     },
     "input-shape": {
       "description": "SHAPE input plugin"
@@ -156,7 +162,7 @@
     "proj": {
       "description": "PROJ Functionalities",
       "dependencies": [
-        "proj4"
+        "proj"
       ]
     },
     "svg-renderer": {
@@ -193,7 +199,6 @@
       "description": "utility application pgsql2sqlite",
       "dependencies": [
         "boost-program-options",
-        "libodb-pgsql",
         "libpq",
         "sqlite3"
       ]
@@ -213,7 +218,7 @@
     "viewer": {
       "description": "Make demo viewer application",
       "dependencies": [
-        "qt5-base"
+        "qtbase"
       ]
     },
     "webp": {

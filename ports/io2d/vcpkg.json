@@ -1,13 +1,9 @@
 {
   "name": "io2d",
   "version-date": "2020-09-14",
-  "port-version": 2,
+  "port-version": 5,
   "description": "a lightweight, cross platform drawing library",
   "dependencies": [
-    {
-      "name": "cairo",
-      "platform": "!osx"
-    },
     {
       "name": "cairo",
       "features": [
@@ -16,8 +12,20 @@
       "platform": "linux"
     },
     {
+      "name": "cairo",
+      "platform": "!osx"
+    },
+    {
       "name": "graphicsmagick",
       "platform": "!osx"
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
     }
   ]
 }

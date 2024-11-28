@@ -1,14 +1,12 @@
 # test application for this port: https://github.com/mathisloge/mapnik-vcpkg-test
 
-vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO mapnik/mapnik
-    REF 4695c42b51bc633e10b15c30ba580093ca0dda4f
-    SHA512 c0e6c77b6c859ac03a2169d8f71ee2d68e6b76dd0295a0656f278f31ccf531b02f2a5bc5cce7e78177872fba2e5dda95dc00685d6157043fa3a246a072ab7075
+    REF 283e2762d4c2175aa30f4f18ca383d1f69dcfaf6
+    SHA512 8ce914249c54d7d30e53fcccb7400fd98696390e53d18d97848b46ff99945bb76772dc8d3e7d37aad87db3ea67c6b00fd6bea04d5bc6ea09449d429caccea339
     HEAD_REF master
-    PATCHES
-        cairo-find-fix.patch
+    PATCHES fix-compatibility-with-boost-1.85.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -43,23 +41,31 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         "utility-svg2png"           BUILD_UTILITY_SVG2PNG
 )
 
+if (VCPKG_CRT_LINKAGE STREQUAL dynamic)
+    set(BUILD_SHARED_CRT ON)
+else()
+    set(BUILD_SHARED_CRT OFF)
+endif()
+vcpkg_find_acquire_program(PKGCONFIG)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS   
         ${FEATURE_OPTIONS}
-        -DCOPY_LIBRARIES_FOR_EXECUTABLES=OFF
-        -DCOPY_FONTS_AND_PLUGINS_FOR_EXECUTABLES=OFF
+        -DBUILD_SHARED_CRT=${BUILD_SHARED_CRT}
         -DINSTALL_DEPENDENCIES=OFF
-        -DBUILD_TEST=OFF
+        -DBUILD_TESTING=OFF
         -DBUILD_BENCHMARK=OFF
         -DBUILD_DEMO_CPP=OFF
         -DUSE_EXTERNAL_MAPBOX_GEOMETRY=ON
         -DUSE_EXTERNAL_MAPBOX_POLYLABEL=ON
         -DUSE_EXTERNAL_MAPBOX_PROTOZERO=ON
         -DUSE_EXTERNAL_MAPBOX_VARIANT=ON
+        -DBOOST_REGEX_HAS_ICU=ON
         -DMAPNIK_CMAKE_DIR=share/mapnik/cmake
         -DFONTS_INSTALL_DIR=share/mapnik/fonts
         -DMAPNIK_PKGCONF_DIR=lib/pkgconfig
+        -DPKG_CONFIG_EXECUTABLE="${PKGCONFIG}"
 )
 
 vcpkg_cmake_install()

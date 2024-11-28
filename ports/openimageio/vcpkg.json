@@ -1,31 +1,21 @@
 {
   "name": "openimageio",
-  "version": "2.3.7.2",
-  "port-version": 4,
+  "version": "3.0.0.3",
+  "port-version": 2,
   "description": "A library for reading and writing images, and a bunch of related classes, utilities, and application.",
   "homepage": "https://github.com/OpenImageIO/oiio",
+  "license": "BSD-3-Clause",
   "dependencies": [
-    "boost-algorithm",
-    "boost-asio",
-    "boost-config",
-    "boost-filesystem",
-    "boost-foreach",
-    "boost-random",
-    "boost-regex",
-    "boost-smart-ptr",
-    "boost-stacktrace",
-    "boost-static-assert",
-    "boost-system",
-    "boost-thread",
-    "boost-type-traits",
     "fmt",
-    "libheif",
     "libjpeg-turbo",
     "libpng",
-    "libsquish",
+    "opencolorio",
     "openexr",
     "robin-map",
-    "tiff",
+    {
+      "name": "tiff",
+      "default-features": false
+    },
     {
       "name": "vcpkg-cmake",
       "host": true
@@ -42,16 +32,11 @@
       "dependencies": [
         {
           "name": "ffmpeg",
+          "default-features": false,
           "features": [
             "avresample"
           ]
         }
-      ]
-    },
-    "field3d": {
-      "description": "Enable field3D support for openimageio",
-      "dependencies": [
-        "field3d"
       ]
     },
     "freetype": {
@@ -66,6 +51,12 @@
         "giflib"
       ]
     },
+    "libheif": {
+      "description": "Enable heif support for openimageio",
+      "dependencies": [
+        "libheif"
+      ]
+    },
     "libraw": {
       "description": "Enable RAW image files support",
       "dependencies": [
@@ -73,7 +64,10 @@
       ]
     },
     "opencolorio": {
-      "description": "Enable opencolorio support for openimageio",
+      "description": [
+        "Enable opencolorio support for openimageio.",
+        "This feature can only be used when openexr and opencolorio use the same version of Imath."
+      ],
       "dependencies": [
         "opencolorio"
       ]
@@ -81,7 +75,10 @@
     "opencv": {
       "description": "Enable opencv support for openimageio",
       "dependencies": [
-        "opencv"
+        {
+          "name": "opencv",
+          "default-features": false
+        }
       ]
     },
     "openjpeg": {
@@ -93,14 +90,27 @@
     "pybind11": {
       "description": "Enable Python bindings support for openimageio",
       "dependencies": [
-        "pybind11"
+        "pybind11",
+        "python3"
       ]
     },
     "tools": {
-      "description": "Build openimageio tools",
+      "description": "Build openimageio tools"
+    },
+    "viewer": {
+      "description": "Build openimageio viewer",
       "dependencies": [
         "opengl",
-        "qt5-base"
+        {
+          "name": "openimageio",
+          "features": [
+            "tools"
+          ]
+        },
+        {
+          "name": "qtbase",
+          "default-features": false
+        }
       ]
     },
     "webp": {

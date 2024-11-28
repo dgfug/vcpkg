@@ -3,10 +3,13 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO boostorg/fusion
-    REF boost-1.77.0
-    SHA512 c8ff639af2fe04a9a97d087ffdb023ca5530b6de0228f8f87150e6c18100aac6b500698fdfb2a431688be351b7d10e09f58006c9bf84660efe02fdd0c969446c
+    REF boost-${VERSION}
+    SHA512 335fdf5f66711cc755e9c44b9bb33b1312c5850e1ff864c71a90d5ff3db92e23286445975a0395b53bfec300c6d5a4619a30baa60956b244e8ece779d3bd0a1d
     HEAD_REF master
 )
 
-include(${CURRENT_INSTALLED_DIR}/share/boost-vcpkg-helpers/boost-modular-headers.cmake)
-boost_modular_headers(SOURCE_PATH ${SOURCE_PATH})
+set(FEATURE_OPTIONS "")
+boost_configure_and_install(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS ${FEATURE_OPTIONS}
+)

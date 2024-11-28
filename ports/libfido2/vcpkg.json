@@ -1,9 +1,11 @@
 {
   "name": "libfido2",
-  "version": "1.7.0",
+  "version": "1.15.0",
+  "port-version": 1,
   "description": "Provides library functionality to communicate with a FIDO device over USB, and to verify attestation and assertion signatures.",
   "homepage": "https://developers.yubico.com/libfido2/",
-  "supports": "!uwp & (x86 | x64) & windows",
+  "license": "BSD-2-Clause",
+  "supports": "!android & !uwp",
   "dependencies": [
     "libcbor",
     "openssl",

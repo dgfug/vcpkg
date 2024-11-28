@@ -3,12 +3,11 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO JustasMasiulis/lazy_importer
-    REF a02a9ed62ea56c614728465b1be9fab812fdf037
-    SHA512 d88a7a1df269f2159eb0997f691fb5b71e89d75160b45ce968bd58e0d71e214f03e4c05e44234ace04ba9025b0b7d3ff07cf803753473c51164223a05a61598f
+    REF 4810f51d63438865e508c2784ea00811d9beb2ea
+    SHA512 1b2f330586cb80d8ecf13dd27c5a407c778c3a12aeffa493d31b75fa9c3186ed9f67838164c48c64e2bb4a9fe804a77625dd1cd996d661545580e29d57c3494b
     HEAD_REF master
 )
 
 file(COPY "${SOURCE_PATH}/include/lazy_importer.hpp" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
 
-# Handle copyright
-configure_file("${SOURCE_PATH}/LICENSE" "${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright" COPYONLY)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

@@ -1,17 +1,16 @@
 vcpkg_from_github(
   OUT_SOURCE_PATH SOURCE_PATH
   REPO reo7sp/tgbot-cpp
-  REF v1.2.1
-  SHA512 b094f9c80dd15b7930b7d7250169b3199d9c84b84826adececa8237111f5ba384ec790dbe969999f362ca2fb35b93950d053777ce5f167007e33c3e4eb133453
+  REF v1.7.3
+  SHA512 845a051a4c7d753680759a09c1d2e1384d81f399b84d553e6785c65a6249a6a770f17eaf57ca28efd420dda78dc6c78096f045ddd87ac98a56c2c54d0b3a110b
   HEAD_REF master
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 vcpkg_copy_pdbs()
 
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
@@ -21,4 +20,4 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
 endif()
 
 # Handle copyright
-configure_file(${SOURCE_PATH}/LICENSE ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright COPYONLY)
+vcpkg_install_copyright(FILE_LIST ${SOURCE_PATH}/LICENSE)

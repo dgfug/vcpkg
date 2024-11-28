@@ -1,22 +1,22 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO likle/cwalk
-    REF v1.2.5
-    SHA512 904e095e375d0c98dedbb17ddf805397387f8f473a708b310ba3086bbd4445bde7d0a037fbe9caed97c9cc793219a3d976cef010d76a32812c4fe2b3b7cde575
+    REF "v${VERSION}"
+    SHA512 d29c83bb350a5477e450cdb86b1edf7232296aed67680345a84fee967ff414d5c997ac313e38620b51cda21398cc5d19c8130fe999ecd6b0161e81b3566f5516
     HEAD_REF master
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DENABLE_TESTS=OFF
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 vcpkg_copy_pdbs()
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/cwalk)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/cwalk)
+vcpkg_fixup_pkgconfig()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
-file(INSTALL ${SOURCE_PATH}/LICENSE.md DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+file(INSTALL "${SOURCE_PATH}/LICENSE.md" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

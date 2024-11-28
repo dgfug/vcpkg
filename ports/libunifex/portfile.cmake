@@ -3,28 +3,32 @@ vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO facebookexperimental/libunifex
-    REF e36b43834329acc75f99910316d3ecec15c0f665
-    SHA512 58f738b49d18982fd3916500c78e8090a266738ec4a8ba416b004fa2c7db718db5ce0e27f5e4e22eaddcc27c8d1618bcb2bc080eee1a31d98543e2595ccc1135
-    HEAD_REF master
+    REF "v${VERSION}"
+    SHA512 9625a248b9ed43f7ac8e3da054020e7c5c71d3da253cfa587ee62eb8a1d4cfee794758b7d28896e4038c1924b204c92be7230c20cf525684e2c304ceaa4a6321
+    HEAD_REF main
     PATCHES
-        fix-install.patch
-        allow-warnings.patch
+        fix-compile-error.patch
+        fix-linux-timespec.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
-        test    BUILD_TESTING
-        test    UNIFEX_BUILD_EXAMPLES
+        coroutines CXX_COROUTINES_HAVE_COROUTINES
 )
 
 vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
     OPTIONS
         ${FEATURE_OPTIONS}
+        -DCMAKE_CXX_STANDARD:STRING=20
+        -DBUILD_TESTING=OFF
+        -DUNIFEX_BUILD_EXAMPLES=OFF
 )
+
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(PACKAGE_NAME unifex CONFIG_PATH lib/cmake/unifex)
 vcpkg_copy_pdbs()
+vcpkg_fixup_pkgconfig()
 
 file(INSTALL "${SOURCE_PATH}/LICENSE.txt"
      DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

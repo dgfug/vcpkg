@@ -1,17 +1,17 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO serge1/ELFIO
-    REF Release_3.9
-    SHA512 479c4132ac3575940bd1e8190ba5253e54ae57f38319d7bca75ea85ee2f744f5d5b460d2d4ceb17eca0d0561c6e281673f050bbdab2f5ff526c031c220876bf1)
-
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+    REF "Release_${VERSION}"
+    SHA512 f5c8bc6cc98da845f6c011fc85b98476935c5d20d72b36bff5ad2472434494115ee7c06cfa37152c528e5931c39fe3cc084bfc8e6952b2c3e8f24b8601ae212f
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_configure(
+    SOURCE_PATH ${SOURCE_PATH}
+)
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH share/${PORT}/cmake)
+vcpkg_cmake_install()
+
+vcpkg_cmake_config_fixup(CONFIG_PATH share/${PORT}/cmake)
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug")
-file(INSTALL ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+file(INSTALL ${SOURCE_PATH}/LICENSE.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)

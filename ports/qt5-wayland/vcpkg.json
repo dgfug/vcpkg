@@ -1,8 +1,8 @@
 {
   "name": "qt5-wayland",
-  "version-string": "5.15.2",
-  "port-version": 2,
-  "description": "Qt5 wayland Module;",
+  "version": "5.15.16",
+  "description": "QtWayland is a Qt 5 module that wraps the functionality of Wayland.",
+  "license": null,
   "supports": "linux",
   "dependencies": [
     {

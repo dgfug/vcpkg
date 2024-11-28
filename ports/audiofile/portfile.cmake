@@ -3,8 +3,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO adamstark/AudioFile
-    REF b7dd84abd5763f64fcf74e58499c4b5d779a396d # 1.0.9
-    SHA512 daadbf7badadee4a189453af137b1ea5a5ba3486780d02664d1516f379c3705155b1036a9f8f7acd49b6a82269a07e510edcd5e9de55c73f47250244a510ccbb
+    REF "${VERSION}"
+    SHA512 b0612e6d6c440e52a168f27410d6ac14f7fcef2ba183e8a80e03f924e6fc778c01e4f46b40cab10dd73c48f8f10dc4112c58f602728fdeec0bc3e143852fc95e
     HEAD_REF master
     PATCHES
         fix-cmakeLists.patch

@@ -1,25 +1,20 @@
-set(GEOS_VERSION 3.10.0)
-
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://download.osgeo.org/geos/geos-${GEOS_VERSION}.tar.bz2"
-    FILENAME "geos-${GEOS_VERSION}.tar.bz2"
-    SHA512 12657c6649bfbf6efa3232a054969c6229bb23fc16a7c72d6ca5fdb662e0d08e14bbcaa6944a17de8972b6c236608d94c870ead0b04fada2d2af3d42c238058e
+    URLS "https://download.osgeo.org/geos/geos-${VERSION}.tar.bz2"
+    FILENAME "geos-${VERSION}.tar.bz2"
+    SHA512 8ffaa3f49a8365db693ac948e9d66cf55321eb12151734c7da2775070b7804ffa607de2474b7019d6ea2a99d5e037fb1e8561bf9025e65ddd4bd1ba049382b28
 )
-vcpkg_extract_source_archive_ex(
-    OUT_SOURCE_PATH SOURCE_PATH
+vcpkg_download_distfile(msvc_2017_patch
+    URLS https://github.com/libgeos/geos/commit/46e9f158073ebf0d4ec8b7dde37c155d097bc0d7.diff?full_index=1
+    SHA512 9fa1ccc4c66e8268c59bcac218015c2b10ee594bece837e6d0fc78fe700233abd1b2df7aa396c00786ffb170fbfbb0ab530f5007ba10376a2366ee3472d8b02a
+    FILENAME geos-${VERSION}-msvc-2017.diff
+)
+vcpkg_extract_source_archive(SOURCE_PATH
     ARCHIVE "${ARCHIVE}"
-    REF ${GEOS_VERSION}
+    SOURCE_BASE "v${VERSION}"
     PATCHES
-        disable-warning-4996.patch
         fix-exported-config.patch
-        install-hpp-files.patch
+        "${msvc_2017_patch}"
 )
-
-if(VCPKG_TARGET_IS_MINGW)
-    set(_CMAKE_EXTRA_OPTIONS "-DDISABLE_GEOS_INLINE=ON")
-else()
-    set(_CMAKE_EXTRA_OPTIONS "")
-endif()
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
@@ -29,36 +24,22 @@ vcpkg_cmake_configure(
         -DBUILD_GEOSOP=OFF
         -DBUILD_TESTING=OFF
         -DBUILD_BENCHMARKS=OFF
-        ${_CMAKE_EXTRA_OPTIONS}
-    OPTIONS_DEBUG
-        -DCMAKE_DEBUG_POSTFIX=d # Legacy decision, hard coded in depending ports
 )
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/GEOS)
 vcpkg_fixup_pkgconfig()
 
-function(geos_add_debug_postfix config_file)
-    file(READ "${config_file}" contents)
-    string(REGEX REPLACE "(-lgeos(_c)?)d?([^-_d])" "\\1d\\3" fixed_contents "${contents}")
-    file(WRITE "${config_file}" "${fixed_contents}")
-endfunction()
-if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
-    if(NOT VCPKG_TARGET_IS_WINDOWS OR VCPKG_TARGET_IS_MINGW)
-        file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/tools/${PORT}/bin")
-        file(RENAME "${CURRENT_PACKAGES_DIR}/bin/geos-config" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/bin/geos-config")
-        file(CHMOD "${CURRENT_PACKAGES_DIR}/tools/${PORT}/bin/geos-config" FILE_PERMISSIONS
-            OWNER_READ OWNER_WRITE OWNER_EXECUTE
-            GROUP_READ GROUP_EXECUTE
-            WORLD_READ WORLD_EXECUTE
-        )
-    endif()
-endif()
-if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
-    geos_add_debug_postfix("${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/geos.pc")
-    if(NOT VCPKG_TARGET_IS_WINDOWS OR VCPKG_TARGET_IS_MINGW)
+if(NOT VCPKG_TARGET_IS_WINDOWS OR VCPKG_TARGET_IS_MINGW)
+    file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/tools/${PORT}/bin")
+    file(RENAME "${CURRENT_PACKAGES_DIR}/bin/geos-config" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/bin/geos-config")
+    file(CHMOD "${CURRENT_PACKAGES_DIR}/tools/${PORT}/bin/geos-config" FILE_PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+    )
+    if(NOT VCPKG_BUILD_TYPE)
         file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/tools/${PORT}/debug/bin")
         file(RENAME "${CURRENT_PACKAGES_DIR}/debug/bin/geos-config" "${CURRENT_PACKAGES_DIR}/tools/${PORT}/debug/bin/geos-config")
-        geos_add_debug_postfix("${CURRENT_PACKAGES_DIR}/tools/${PORT}/debug/bin/geos-config")
         file(CHMOD "${CURRENT_PACKAGES_DIR}/tools/${PORT}/debug/bin/geos-config" FILE_PERMISSIONS
             OWNER_READ OWNER_WRITE OWNER_EXECUTE
             GROUP_READ GROUP_EXECUTE
@@ -72,8 +53,7 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static" OR NOT VCPKG_TARGET_IS_WINDOWS)
     file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
 endif()
 
-# Handle copyright
-configure_file("${SOURCE_PATH}/COPYING" "${CURRENT_PACKAGES_DIR}/share/geos/copyright" COPYONLY)
-
 vcpkg_copy_pdbs()
+
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/COPYING")

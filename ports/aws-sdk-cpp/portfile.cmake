@@ -3,24 +3,20 @@ vcpkg_buildpath_length_warning(37)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO aws/aws-sdk-cpp
-    REF b0204a7b6a33211f533a175e987a755f714bf7f3 # 1.9.96
-    SHA512 456d3fc256a5a26843ecf16014242514b165ae5fa35f088d57aa54a744d19e2c38bd0bed9b6a4b76948c8a49cf87a06a4c722be5a910ed41dfd9c9b9a66b398d
+    REF "${VERSION}"
+    SHA512 01579a7be61b70cee534bc3ada89f921e1849d2b7927107ad38ec3ab972f92dc24c9b18a2bec28033db498bf90f03f20e2ae8541b8cb0f8a47208d4c485b3bc5
     PATCHES
-        patch-relocatable-rpath.patch
         fix-aws-root.patch
+        lock-curl-http-and-tls-settings.patch
+        fix_find_curl.patch
+        find-dependency.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "dynamic" FORCE_SHARED_CRT)
 
-set(EXTRA_ARGS)
+set(EXTRA_ARGS "")
 if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
     set(rpath "@loader_path")
-    set(EXTRA_ARGS
-            "-DCURL_HAS_H2_EXITCODE=0"
-            "-DCURL_HAS_H2_EXITCODE__TRYRUN_OUTPUT=\"\""
-            "-DCURL_HAS_TLS_PROXY_EXITCODE=0"
-            "-DCURL_HAS_TLS_PROXY_EXITCODE__TRYRUN_OUTPUT=\"\""
-            )
 elseif (VCPKG_TARGET_IS_ANDROID)
     set(EXTRA_ARGS "-DTARGET_ARCH=ANDROID"
             "-DGIT_EXECUTABLE=--invalid-git-executable--"
@@ -29,18 +25,12 @@ elseif (VCPKG_TARGET_IS_ANDROID)
             "-DANDROID_BUILD_ZLIB=FALSE"
             "-DANDROID_BUILD_CURL=FALSE"
             "-DANDROID_BUILD_OPENSSL=FALSE"
-            "-DENABLE_HW_OPTIMIZATION=OFF"
-            "-DCURL_HAS_H2_EXITCODE=0"
-            "-DCURL_HAS_H2_EXITCODE__TRYRUN_OUTPUT=\"\""
-            "-DCURL_HAS_TLS_PROXY_EXITCODE=0"
-            "-DCURL_HAS_TLS_PROXY_EXITCODE__TRYRUN_OUTPUT=\"\""
             )
 else()
     set(rpath "\$ORIGIN")
 endif()
 
-set(BUILD_ONLY core)
-include(${CMAKE_CURRENT_LIST_DIR}/compute_build_only.cmake)
+string(REPLACE "awsmigrationhub" "AWSMigrationHub" targets "${FEATURES}")
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     DISABLE_PARALLEL_CONFIGURE
@@ -49,18 +39,20 @@ vcpkg_cmake_configure(
         "-DENABLE_UNITY_BUILD=ON"
         "-DENABLE_TESTING=OFF"
         "-DFORCE_SHARED_CRT=${FORCE_SHARED_CRT}"
-        "-DBUILD_ONLY=${BUILD_ONLY}"
+        "-DBUILD_ONLY=${targets}"
         "-DBUILD_DEPS=OFF"
         "-DBUILD_SHARED_LIBS=OFF"
+        "-DAWS_SDK_WARNINGS_ARE_ERRORS=OFF"
         "-DCMAKE_INSTALL_RPATH=${rpath}"
         "-DCMAKE_MODULE_PATH=${CURRENT_INSTALLED_DIR}/share/aws-c-common" # use extra cmake files
 )
 vcpkg_cmake_install()
 
-foreach(TARGET IN LISTS BUILD_ONLY)
-    vcpkg_cmake_config_fixup(PACKAGE_NAME "aws-cpp-sdk-${TARGET}" CONFIG_PATH "lib/cmake/aws-cpp-sdk-${TARGET}" DO_NOT_DELETE_PARENT_CONFIG_PATH)
-endforeach() 
-vcpkg_cmake_config_fixup(PACKAGE_NAME "AWSSDK" CONFIG_PATH "lib/cmake/AWSSDK")
+foreach(TARGET IN LISTS targets)
+    string(TOLOWER "aws-cpp-sdk-${TARGET}" package)
+    vcpkg_cmake_config_fixup(PACKAGE_NAME "${package}" CONFIG_PATH "lib/cmake/aws-cpp-sdk-${TARGET}" DO_NOT_DELETE_PARENT_CONFIG_PATH)
+endforeach()
+vcpkg_cmake_config_fixup(PACKAGE_NAME "awssdk" CONFIG_PATH "lib/cmake/AWSSDK")
 
 vcpkg_copy_pdbs()
 
@@ -90,7 +82,7 @@ file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/debug/nuget"
 )
 
-if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
     file(GLOB LIB_FILES ${CURRENT_PACKAGES_DIR}/bin/*.lib)
     if(LIB_FILES)
         file(COPY ${LIB_FILES} DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
@@ -107,4 +99,4 @@ endif()
 
 configure_file("${CURRENT_PORT_DIR}/usage" "${CURRENT_PACKAGES_DIR}/share/${PORT}/usage" @ONLY)
 
-file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

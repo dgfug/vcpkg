@@ -1,9 +1,12 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO offa/influxdb-cxx
-    REF v0.6.6
-    SHA512 4c9a9bf7ccf430caaed088830dceda8cc4b4ec6b78187e5238c5e73f17583781d9d00e08db1011b86a4f418cdfbbfc8b000500461d013872a62096de456e47ea
+    REF "v${VERSION}"
+    SHA512 ac16178a17ac9b43a23d64f56d0012aeda896d3065246166abdef1441cf466453a6972c5820411936dcfa10a21505b654dfe981449c1d4cc169807f1db5d099f
     HEAD_REF master
+    PATCHES
+        fix-dllexports.patch
+        268.patch # https://github.com/offa/influxdb-cxx/pull/268
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -11,18 +14,18 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         boost   INFLUXCXX_WITH_BOOST
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DINFLUXCXX_TESTING=OFF
         -DINFLUXCXX_SYSTEMTEST=OFF
         ${FEATURE_OPTIONS}
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake)
+vcpkg_cmake_config_fixup(PACKAGE_NAME InfluxDB CONFIG_PATH lib/cmake/InfluxDB)
 
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

@@ -1,26 +1,26 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO libspatialindex/libspatialindex
-    REF 1.9.3
-    SHA512 d4c608abbd631dc163b7b4fb6bf09dee3e85ce692a5f8875d51f05a26e09c75cd17dff1ed9d2c232a071f0f5864d21d877b4cbc252f3416896db24dfa3fa18cb
+    REF "${VERSION}"
+    SHA512 a508a9ed4019641bdaaa53533505531f3db440b046a9c7d9f78ed480293200c51796c2d826a6bb9b4f9543d60bb0fef9e4c885ec3f09326cfa4d2fb81c1593aa
     HEAD_REF master
-    PATCHES
-        static.patch
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    WINDOWS_USE_MSBUILD
     OPTIONS
         -DCMAKE_DEBUG_POSTFIX=d
         -DSIDX_BUILD_TESTS:BOOL=OFF
 )
 
-vcpkg_install_cmake()
-
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/${PORT})  
+vcpkg_fixup_pkgconfig()
 vcpkg_copy_pdbs()
 
 #Debug
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
 # Handle copyright
-file(INSTALL ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+file(INSTALL "${SOURCE_PATH}/COPYING" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

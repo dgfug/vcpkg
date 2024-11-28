@@ -1,25 +1,25 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO jarro2783/cxxopts
-    REF 302302b30839505703d37fb82f536c53cf9172fa # v2.2.1
-    SHA512 ba4fe586772979929e090310557b1cba66c7350593ae170e3c7bd6577cf147b20dbe3ba834f2ed6e1044a1b38d5166bfd0491ab573df68e678ff2dc792a3c442
+    REF "v${VERSION}"
+    SHA512 7841fb3e6c3c2a057917c962e29fc0090e6ed06f5515aaa5e2a868fef59071a9a99b74d81c32cf613ecf10a68a4d96d6ad07805f48c7c3951ded096a2317dc3d
     HEAD_REF master
-    PATCHES
-    fix-uwp-error.patch
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DCXXOPTS_BUILD_EXAMPLES=OFF
-		-DCXXOPTS_BUILD_TESTS=OFF
+        -DCXXOPTS_BUILD_TESTS=OFF
+        -DCXXOPTS_ENABLE_WARNINGS=OFF
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/cxxopts)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/cxxopts)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug ${CURRENT_PACKAGES_DIR}/lib)
+vcpkg_fixup_pkgconfig()
 
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/cxxopts RENAME copyright)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug" "${CURRENT_PACKAGES_DIR}/lib")
+
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

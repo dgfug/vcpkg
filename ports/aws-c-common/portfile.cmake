@@ -1,33 +1,35 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO awslabs/aws-c-common
-    REF fdd4a10243903260f412f587cc748f0ac79629b4 # v0.6.9
-    SHA512 969c9b85af58fc144480f6548e78126cf3fe758951ecbdffb579163b9a505a7ea58c32430390102ff620e828bf241dd24c0167f205306949d36dcf4504efa09a
+    REF "v${VERSION}"
+    SHA512 482bfeb5c7dac16486236417af0f5c0a20bc36c271aaf32088d188186861d61bf0b96c5da13a1c88853fdc6a1fb8b8db254a547c3648a659ec6e91177978dc9b
     HEAD_REF master
     PATCHES
         disable-internal-crt-option.patch # Disable internal crt option because vcpkg contains crt processing flow
-        fix-cmake-target-path.patch # Shared libraries and static libraries are not built at the same time
 )
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
-    PREFER_NINJA
+    OPTIONS
+        -DBUILD_TESTING=FALSE
 )
 
 vcpkg_cmake_install()
 
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/aws-c-common/cmake)
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake)
+vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake) # central macros
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
+
+string(REPLACE "dynamic" "shared" subdir "${VCPKG_LIBRARY_LINKAGE}")
+vcpkg_cmake_config_fixup(CONFIG_PATH "lib/${PORT}/cmake/${subdir}" DO_NOT_DELETE_PARENT_CONFIG_PATH)
+vcpkg_cmake_config_fixup(CONFIG_PATH "lib/${PORT}/cmake")
+vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/${PORT}/${PORT}-config.cmake" [[/${type}/]] "/")
 
 file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/debug/include"
-    "${CURRENT_PACKAGES_DIR}/debug/lib/aws-c-common"
-    "${CURRENT_PACKAGES_DIR}/lib/aws-c-common"
-    )
+    "${CURRENT_PACKAGES_DIR}/debug/lib/${PORT}"
+    "${CURRENT_PACKAGES_DIR}/lib/${PORT}"
+)
 
 vcpkg_copy_pdbs()
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
-
-# Handle copyright
-file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

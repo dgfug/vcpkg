@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO nanomsg/nng
-    REF 9fcf039b573d153ba9bbc2beb5f11259ddacdcff # v1.5.1
-    SHA512 3db2668c3f971dc54156df2a3520645224fbb55460957da35940889c3148cb2cbc67c10cd23b9614ece70235d1f6003618310129eb9c40ced42db058c140dd58
+    REF "v${VERSION}"
+    SHA512 d334264981ce6648537ed1b7fb469fd35fbbf0bea9a276ee23f12e04d1c9b0b4aa3008715a4774b51e9e46fabecf54dd4da95ac10194ed1099cbfbe524747272
     HEAD_REF master
 )
 
@@ -34,13 +34,13 @@ vcpkg_replace_string(
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
     vcpkg_replace_string(
-        ${CURRENT_PACKAGES_DIR}/include/nng/nng.h
+        "${CURRENT_PACKAGES_DIR}/include/nng/nng.h"
         "!defined(NNG_STATIC_LIB)"
         "1 /* !defined(NNG_STATIC_LIB) */"
     )
 else()
     vcpkg_replace_string(
-        ${CURRENT_PACKAGES_DIR}/include/nng/nng.h
+        "${CURRENT_PACKAGES_DIR}/include/nng/nng.h"
         "!defined(NNG_STATIC_LIB)"
         "0 /* !defined(NNG_STATIC_LIB) */"
     )
@@ -50,6 +50,6 @@ if ("tools" IN_LIST FEATURES)
     vcpkg_copy_tools(TOOL_NAMES nngcat AUTO_CLEAN)
 endif()
 
-file(INSTALL "${SOURCE_PATH}/LICENSE.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.txt")
 
 vcpkg_copy_pdbs()

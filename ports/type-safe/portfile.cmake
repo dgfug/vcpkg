@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO foonathan/type_safe
-    REF v0.2.2
-    SHA512 5dbc9e906e066cfc5eb8fd9a308e952e33c7463b5d2abaadd4303ebe8c38a1d8e79865076ad6422f4c56ffa23113b291e3c11d6dd28e73ec3d6fe2e3e7a233a3
+    REF "v${VERSION}"
+    SHA512 90e256af61649706c97d2cf317ce34b2b953fc841b04eab8193a865d3eced9a1044d22ecb520688f3adf35a06c346945604f177a933e7709cc167bb1637ccb4e
     HEAD_REF main
 )
 
@@ -14,10 +14,10 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/type_safe)
+vcpkg_copy_pdbs()
+
+vcpkg_cmake_config_fixup(PACKAGE_NAME type_safe CONFIG_PATH lib/cmake/type_safe)
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug" "${CURRENT_PACKAGES_DIR}/lib")
-
-vcpkg_copy_pdbs()
 
 file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

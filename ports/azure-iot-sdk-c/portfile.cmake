@@ -1,30 +1,16 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
-if("public-preview" IN_LIST FEATURES)
-    vcpkg_from_github(
-        OUT_SOURCE_PATH SOURCE_PATH
-        REPO Azure/azure-iot-sdk-c
-        REF cb2e8d390df56ffa31d08ca0a79ab58ff96160cc
-        SHA512 6798b17d6768b3ccbd0eb66719b50f364cd951736eb71110e2dc9deca054a1566ff88b9e8c5e9b52536e4308cad6cd3cbebff3282c123083e3afaee5535e724b
-        HEAD_REF public-preview
-        PATCHES
-            improve-external-deps.patch
-            fix-cmake.patch
-            remove-werror.patch
-    )
-else()
-    vcpkg_from_github(
-        OUT_SOURCE_PATH SOURCE_PATH
-        REPO Azure/azure-iot-sdk-c
-        REF 808a5595f98853a5f2eae2c67dd9b3608a2338ea
-        SHA512 29cb04679b75a48a8a69713045465c7c416755764ec80781405c8528abd8225654c3262ed3816fb03a13f7505f6c811afbdc5dabc79b676b4f727feaf11e0583
-        HEAD_REF master
-        PATCHES
-            improve-external-deps.patch
-            fix-cmake.patch
-            remove-werror.patch
-    )
-endif()
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO Azure/azure-iot-sdk-c
+    REF 9c70f98b7b659e169ae44389a5142f3a386c5791
+    SHA512 ba00534f9881f0be260008c13b91f87285690c11b2a6ca0b94b2f73bbe6dcf60433382b45df9f42340b121f846bc66a621672fdfa18323227600d031d99bb3cd
+    HEAD_REF master
+    PATCHES
+        fix-install-location.patch
+        improve-external-deps.patch
+        fix-iothubclient-includes.patch
+)
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
@@ -32,12 +18,11 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         use-prov-client use_prov_client
 )
 
-file(COPY ${CURRENT_INSTALLED_DIR}/share/azure-c-shared-utility/azure_iot_build_rules.cmake DESTINATION ${SOURCE_PATH}/deps/azure-c-shared-utility/configs/)
-file(COPY ${SOURCE_PATH}/configs/azure_iot_sdksFunctions.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/cmake/azure_iot_sdks/)
+file(COPY "${CURRENT_INSTALLED_DIR}/share/azure-c-shared-utility/azure_iot_build_rules.cmake" DESTINATION "${SOURCE_PATH}/deps/azure-c-shared-utility/configs/")
+file(COPY "${SOURCE_PATH}/configs/azure_iot_sdksFunctions.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/cmake/azure_iot_sdks/")
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS ${FEATURE_OPTIONS}
         -Dskip_samples=ON
         -Duse_installed_dependencies=ON
@@ -45,14 +30,18 @@ vcpkg_configure_cmake(
         -Dbuild_as_dynamic=OFF
         -Duse_edge_modules=ON
         -Dwarnings_as_errors=OFF
+        -Dhsm_type_sastoken=OFF
+    MAYBE_UNUSED_VARIABLES
+        build_as_dynamic
+        warnings_as_errors
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH cmake TARGET_PATH share/azure_iot_sdks)
+vcpkg_cmake_config_fixup(PACKAGE_NAME azure_iot_sdks CONFIG_PATH "lib/cmake/azure_iot_sdks")
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include" "${CURRENT_PACKAGES_DIR}/debug/share")
 
-configure_file(${SOURCE_PATH}/LICENSE ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright COPYONLY)
+configure_file("${SOURCE_PATH}/LICENSE" "${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright" COPYONLY)
 
 vcpkg_copy_pdbs()

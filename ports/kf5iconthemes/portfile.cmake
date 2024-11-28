@@ -1,21 +1,19 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO KDE/kiconthemes
-    REF v5.84.0
-    SHA512 ca5645d6e4fde4f60c6f16c911539f4056060cc22afae275459632bc7069352b068b1727eb75b898d319e6eef3df9ddc35d8e22d4c1d05a657b112378e56731e
+    REF v5.98.0
+    SHA512 822deb6e4469e69541e057b72f2ce27258f5cdb893f1cc8d37d900bb5aa4694706de051a905a939ac2f6fa474f69f4e05f24c87053699b205e6a58e18d56aaf1
     HEAD_REF master
-    PATCHES
-        fix_config_cmake.patch
 )
 
 vcpkg_check_features(
-     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
-     FEATURES
-         designerplugin BUILD_DESIGNERPLUGIN
- )
+    OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        designerplugin BUILD_DESIGNERPLUGIN
+)
 
 # Prevent KDEClangFormat from writing to source effectively blocking parallel configure
-file(WRITE ${SOURCE_PATH}/.clang-format "DisableFormat: true\nSortIncludes: false\n")
+file(WRITE "${SOURCE_PATH}/.clang-format" "DisableFormat: true\nSortIncludes: false\n")
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
@@ -36,10 +34,7 @@ vcpkg_copy_tools(
 )
 
 if(VCPKG_TARGET_IS_OSX)
-    vcpkg_copy_tools(
-        TOOL_NAMES ksvg2icns
-        AUTO_CLEAN
-    )
+    vcpkg_copy_tools(TOOL_NAMES ksvg2icns AUTO_CLEAN)
 endif()
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
@@ -48,4 +43,7 @@ endif()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
-file(INSTALL "${SOURCE_PATH}/LICENSES/" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright")
+
+file(GLOB LICENSE_FILES "${SOURCE_PATH}/LICENSES/*")
+vcpkg_install_copyright(FILE_LIST ${LICENSE_FILES})
+

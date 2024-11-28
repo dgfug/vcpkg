@@ -1,11 +1,9 @@
-vcpkg_fail_port_install(ON_ARCH "arm")
-
 vcpkg_from_github(
-  OUT_SOURCE_PATH SOURCE_PATH
-  REPO asmjit/asmjit
-  REF d0d14ac774977d0060a351f66e35cb57ba0bf59c # accessed on 2021-10-26
-  SHA512 2822763fcb3c18f6699119c1773404667d81f8afb86f8f2e8dbe627526a2877b049d16505557e680e4e310f0e0667263dc4ac442f682e95f2568bf0bf8b61b4b
-  HEAD_REF master
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO asmjit/asmjit
+    REF ffac9f36fb045dd2c6a81e1b5b9ccc115e5ef924 # commited on 2024-06-28
+    SHA512 3a594bdea7095f66356f8c21e03a4db2535811988726c25a29e66721cb703dc9dceddeb5f8a6c7daeafba3fbf6dd07e71375446d8dfb182f57c14bce28192774
+    HEAD_REF master
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" ASMJIT_STATIC)
@@ -18,7 +16,6 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 vcpkg_copy_pdbs()
-
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/asmjit)
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
@@ -30,4 +27,4 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     )
 endif()
 
-file(INSTALL "${SOURCE_PATH}/LICENSE.md" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.md")

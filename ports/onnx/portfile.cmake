@@ -1,23 +1,16 @@
-# uwp: LOAD_LIBRARY_SEARCH_DEFAULT_DIRS undefined identifier
-vcpkg_fail_port_install(ON_TARGET "uwp")
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO onnx/onnx
-    REF v1.10.1
-    SHA512 927b6d74dcf41b62c1290674cebb8e6c054acf101214352a0c5414d9b2eafa2d1e144f4d361452cd7494fb228e26c2ce2676fb1212aff1eeb3f889dc2faf5438
+    REF "v${VERSION}"
+    SHA512 7a9a8493b9c007429629484156487395044506f34e72253640e626351cb623b390750b36af78a290786131e3dcac35f4eb269e8693b594b7ce7cb105bcf9318d
     PATCHES
         fix-cmakelists.patch
-        wrap-onnxifi-targets.patch
+        fix-dependency-protobuf.patch
 )
 
-if(VCPKG_TARGET_IS_WINDOWS)
-    string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "static" USE_STATIC_RUNTIME)
-    list(APPEND PLATFORM_OPTIONS
-        -DONNX_USE_MSVC_STATIC_RUNTIME=${USE_STATIC_RUNTIME}
-    )
-endif()
+string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "static" USE_STATIC_RUNTIME)
 
 # ONNX_USE_PROTOBUF_SHARED_LIBS: find the library and check its file extension
 find_library(PROTOBUF_LIBPATH NAMES protobuf PATHS "${CURRENT_INSTALLED_DIR}/bin" "${CURRENT_INSTALLED_DIR}/lib" REQUIRED)
@@ -36,7 +29,7 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
 # Like protoc, python is required for codegen.
 vcpkg_find_acquire_program(PYTHON3)
 
-# PATH for .bat scripts can find 'python'
+# PATH for .bat scripts so it can find 'python'
 get_filename_component(PYTHON_DIR "${PYTHON3}" PATH)
 vcpkg_add_to_path(PREPEND "${PYTHON_DIR}")
 
@@ -50,15 +43,17 @@ endif()
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        ${FEATURE_OPTIONS} ${PLATFORM_OPTIONS}
+        ${FEATURE_OPTIONS}
         -DPython3_EXECUTABLE=${PYTHON3}
         -DONNX_ML=ON
         -DONNX_GEN_PB_TYPE_STUBS=ON
         -DONNX_USE_PROTOBUF_SHARED_LIBS=${USE_PROTOBUF_SHARED}
         -DONNX_USE_LITE_PROTO=OFF
-        -DONNXIFI_ENABLE_EXT=OFF
+        -DONNX_USE_MSVC_STATIC_RUNTIME=${USE_STATIC_RUNTIME}
         -DONNX_BUILD_TESTS=OFF
         -DONNX_BUILD_BENCHMARKS=OFF
+    MAYBE_UNUSED_VARIABLES
+        ONNX_USE_MSVC_STATIC_RUNTIME
 )
 
 if("pybind11" IN_LIST FEATURES)
@@ -68,7 +63,11 @@ endif()
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/ONNX)
 
-file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
+vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/${PORT}/ONNXConfig.cmake" "# import targets" 
+[[# import targets
+include(CMakeFindDependencyMacro)
+find_dependency(protobuf CONFIG)]])
 
 file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/debug/include"
@@ -78,6 +77,7 @@ file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/include/onnx/bin"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/controlflow"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/generator"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/defs/image"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/logical"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/math"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/nn"
@@ -87,6 +87,7 @@ file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/reduction"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/rnn"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/sequence"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/defs/text"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/traditionalml"
     "${CURRENT_PACKAGES_DIR}/include/onnx/defs/training"
     "${CURRENT_PACKAGES_DIR}/include/onnx/examples"
@@ -94,4 +95,9 @@ file(REMOVE_RECURSE
     "${CURRENT_PACKAGES_DIR}/include/onnx/onnx_cpp2py_export"
     "${CURRENT_PACKAGES_DIR}/include/onnx/test"
     "${CURRENT_PACKAGES_DIR}/include/onnx/tools"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/onnx_ml"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/onnx_data"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/onnx_operators_ml"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/reference/ops"
+    "${CURRENT_PACKAGES_DIR}/include/onnx/reference"
 )

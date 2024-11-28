@@ -1,10 +1,19 @@
 {
   "name": "live555",
-  "version-string": "latest",
-  "port-version": 2,
+  "version-date": "2024-10-31",
   "description": "A complete RTSP server application",
-  "homepage": "https://www.live555.com/liveMedia",
+  "homepage": "http://www.live555.com/liveMedia",
+  "license": "GPL-3.0-or-later",
+  "supports": "!xbox",
   "dependencies": [
-    "openssl"
+    "openssl",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
   ]
 }

@@ -1,5 +1,3 @@
-vcpkg_fail_port_install(ON_TARGET "UWP")
-
 # Upstream uses CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS, which causes issues
 # https://github.com/thestk/rtmidi/blob/4.0.0/CMakeLists.txt#L20
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
@@ -7,24 +5,29 @@ vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO thestk/rtmidi
-    REF dda792c5394375769466ab1c1d7773e741bbd950 # 4.0.0
-    SHA512 cb1ded29c0b22cf7f38719131a9572a4daba7071fd8cf8b5b8d7306560a218bb0ef42150bf341b76f4ddee0ae087da975116c3b153e7bb908f2a674ecacb9d7a
+    REF "${VERSION}"
+    SHA512 7ff7f85ff86fc019ab7906a46efc986b2a340b2f9a9d504bda85d0afc75921b905b32cb37f87e30ab9d1f13e62587c4ade736dad1609a0880eeab3fe5a936acb
     HEAD_REF master
-    PATCHES
-        fix-POSIXname.patch
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        alsa RTMIDI_API_ALSA
+)
+
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        -DRTMIDI_API_ALSA=OFF
         -DRTMIDI_API_JACK=OFF
+        -DRTMIDI_BUILD_TESTING=OFF
+        ${FEATURE_OPTIONS}
 )
 
-vcpkg_install_cmake()
-vcpkg_fixup_cmake_targets()
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-file(INSTALL "${SOURCE_PATH}/README.md" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_fixup_pkgconfig()
+
+file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

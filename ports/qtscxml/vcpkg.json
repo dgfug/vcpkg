@@ -1,8 +1,9 @@
 {
   "name": "qtscxml",
-  "version-semver": "6.2.1",
-  "description": "SCXML (state machine notation) compiler and related tools",
+  "version": "6.8.0",
+  "description": "The Qt SCXML module provides functionality to create state machines from SCXML files.",
   "homepage": "https://www.qt.io/",
+  "license": null,
   "dependencies": [
     {
       "name": "qtbase",

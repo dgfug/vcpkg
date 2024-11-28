@@ -1,4 +1,4 @@
-vcpkg_fail_port_install(ON_ARCH "arm" ON_TARGET "uwp")
+vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
@@ -8,6 +8,8 @@ vcpkg_from_github(
     HEAD_REF sdf6
     PATCHES
         disable-unneeded-include-findboost.patch
+        fix-dependency-urdfdom.patch
+        disable-test.patch
 )
 
 # Ruby is required by the sdformat build process
@@ -18,15 +20,16 @@ vcpkg_add_to_path(${RUBY_PATH})
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
-    OPTIONS -DBUILD_TESTING=OFF
-            -DUSE_EXTERNAL_URDF=ON
-            -DUSE_EXTERNAL_TINYXML=ON
+    OPTIONS
+        -DBUILD_TESTING=OFF
+        -DUSE_INTERNAL_URDF=OFF
+        -DUSE_EXTERNAL_TINYXML=ON
 )
 
 vcpkg_cmake_install()
 
 # Restore original path
-set(ENV{PATH} ${_path})
+set(ENV{PATH} "${_path}")
 
 # Move location of sdformat.dll from lib to bin
 if(EXISTS "${CURRENT_PACKAGES_DIR}/lib/sdformat.dll")
@@ -53,6 +56,6 @@ vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/ignition/sdformat6.yaml" "${
 vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/sdformat-6.2/sdf/sdf_config.h" "#define SDF_SHARE_PATH \"${CURRENT_PACKAGES_DIR}/share/\"" "")
 vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/sdformat-6.2/sdf/sdf_config.h" "#define SDF_VERSION_PATH \"${CURRENT_PACKAGES_DIR}/share/sdformat/\"" "")
 # Handle copyright
-file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
 
 vcpkg_fixup_pkgconfig()

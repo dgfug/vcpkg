@@ -1,6 +1,4 @@
-vcpkg_fail_port_install(ON_TARGET "Linux" "OSX" "UWP" ON_ARCH "arm" ON_LIBRARY_LINKAGE "static")
-
-message(WARNING ".Net framework 4.0 is required, please install it before install easyhook.")
+message(WARNING ".Net framework 4.7.2 is required, please install it before installing easyhook.")
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
@@ -10,14 +8,6 @@ vcpkg_from_github(
     HEAD_REF master
     PATCHES fix-build.patch
 )
-
-if (VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
-    set(BUILD_ARCH "Win32")
-elseif (VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
-    set(BUILD_ARCH "x64")
-else()
-    message(FATAL_ERROR "Unsupported architecture: ${VCPKG_TARGET_ARCHITECTURE}")
-endif()
 
 # Use /Z7 rather than /Zi to avoid "fatal error C1090: PDB API call failed, error code '23': (0x00000006)"
 foreach(VCXPROJ IN ITEMS
@@ -40,13 +30,48 @@ foreach(VCXPROJ IN ITEMS
     )
 endforeach()
 
-vcpkg_install_msbuild(
-    SOURCE_PATH ${SOURCE_PATH}
+# Use modern .NET Framework
+foreach(CSPROJ IN ITEMS
+    "${SOURCE_PATH}/EasyHook/EasyHook.csproj"
+    "${SOURCE_PATH}/EasyHookSvc/EasyHookSvc.csproj"
+    "${SOURCE_PATH}/EasyLoad/EasyLoad.csproj"
+    "${SOURCE_PATH}/Examples/FileMon/FileMon.csproj"
+    "${SOURCE_PATH}/Examples/FileMonInject/FileMonInject.csproj"
+    "${SOURCE_PATH}/Examples/FileMonitorController/FileMonitorController.csproj"
+    "${SOURCE_PATH}/Examples/FileMonitorInterceptor/FileMonitorInterceptor.csproj"
+    "${SOURCE_PATH}/Examples/FileMonitorInterface/FileMonitorInterface.csproj"
+    "${SOURCE_PATH}/Examples/ProcessMonitor/ProcessMonitor.csproj"
+    "${SOURCE_PATH}/Examples/ProcMonInject/ProcMonInject.csproj"
+    "${SOURCE_PATH}/Test/ComplexParameterInject/ComplexParameterInject.csproj"
+    "${SOURCE_PATH}/Test/ComplexParameterTest/ComplexParameterTest.csproj"
+    "${SOURCE_PATH}/Test/EasyHook.Tests/EasyHook.Tests.csproj"
+    "${SOURCE_PATH}/Test/ManagedTarget/ManagedTarget.csproj"
+    "${SOURCE_PATH}/Test/ManagedTest/ManagedTest.csproj"
+    "${SOURCE_PATH}/Test/MultipleHooks/MultipleHooks/MultipleHooks.csproj"
+    "${SOURCE_PATH}/Test/MultipleHooks/SimpleHook1/SimpleHook1.csproj"
+    "${SOURCE_PATH}/Test/MultipleHooks/SimpleHook2/SimpleHook2.csproj"
+    "${SOURCE_PATH}/Test/TestFuncHooks/TestFuncHooks.csproj")
+
+    vcpkg_replace_string(
+        "${CSPROJ}"
+        "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>"
+        "<TargetFrameworkVersion>4.7.2</TargetFrameworkVersion>"
+        IGNORE_UNCHANGED
+    )
+    vcpkg_replace_string(
+        "${CSPROJ}"
+        "<TargetFrameworkProfile>Client</TargetFrameworkProfile>"
+        ""
+        IGNORE_UNCHANGED
+    )
+endforeach()
+
+vcpkg_msbuild_install(
+    SOURCE_PATH "${SOURCE_PATH}"
     PROJECT_SUBPATH EasyHook.sln
     TARGET EasyHookDll
     RELEASE_CONFIGURATION "netfx4-Release"
     DEBUG_CONFIGURATION "netfx4-Debug"
-    PLATFORM ${BUILD_ARCH}
 )
 
 # Remove the mismatch rebuild library
@@ -78,4 +103,4 @@ endif()
 file(INSTALL "${SOURCE_PATH}/Public/easyhook.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include/easyhook")
 
 # Handle copyright
-file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

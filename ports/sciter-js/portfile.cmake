@@ -6,8 +6,8 @@ endif()
 
 set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
 
-set(SCITER_REVISION d5a13ff197fed3af46d4bc931c158828eb61e357)
-set(SCITER_SHA 5be2db9d2e5caa19be158020a084a246acd6dad2047062f603b3af4f3cdbdd7f7750b263ad6dfaa6c3667de6c51084fc2df75cd3cb8cd60501550377dded1928)
+set(SCITER_REVISION 4adfde891e20cf33d73429b6922c9785f78522aa)
+set(SCITER_SHA 598ea85e6927d46f5ccd043be15d9cd4933af229eef1522e6c9663837e59cc8f7af76a738d3e9047e7eadbd420e1929bd17e7df3fa9ed40902cf6865c824fc46)
 
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL x64)
     set(SCITER_ARCH x64)
@@ -17,11 +17,12 @@ else()
 	message(FATAL_ERROR "Sciter only supports x86/x64")
 endif()
 
-# check out the `https://github.com/c-smile/sciter-js-sdk/archive/${SCITER_REVISION}.tar.gz`
+# check out the `https://gitlab.com/sciter-engine/sciter-js-sdk/-/archive/${SCITER_REVISION}/sciter-js-sdk-${SCITER_REVISION}.tar.gz`
 # hash checksum can be obtained with `curl -L -o tmp.tgz ${URL} && vcpkg hash tmp.tgz`
-vcpkg_from_github(
+vcpkg_from_gitlab(
+    GITLAB_URL https://gitlab.com
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO c-smile/sciter-js-sdk
+    REPO sciter-engine/sciter-js-sdk
     REF ${SCITER_REVISION}
     SHA512 ${SCITER_SHA}
 )
@@ -40,7 +41,7 @@ set(SCITER_TOOLS ${CURRENT_PACKAGES_DIR}/tools/sciter-js)
 set(TOOL_PERMS FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 # license
-file(COPY ${SOURCE_PATH}/logfile.md DESTINATION ${SCITER_SHARE})
+file(COPY ${SOURCE_PATH}/CHANGELOG.md DESTINATION ${SCITER_SHARE})
 file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${SCITER_SHARE} RENAME copyright)
 
 # tools
@@ -94,8 +95,8 @@ elseif(VCPKG_TARGET_IS_WINDOWS)
     file(INSTALL ${SCITER_BIN}/scapp.exe DESTINATION ${SCITER_TOOLS})
     file(INSTALL ${SCITER_BIN}/usciter.exe DESTINATION ${SCITER_TOOLS})
     file(INSTALL ${SCITER_BIN}/inspector.exe DESTINATION ${SCITER_TOOLS})
+    file(INSTALL ${SCITER_BIN}/window-mixin.exe DESTINATION ${SCITER_TOOLS})
     file(INSTALL ${SCITER_BIN}/sciter.dll DESTINATION ${SCITER_TOOLS})
-    file(INSTALL ${SCITER_BIN}/sciter-sqlite.dll DESTINATION ${SCITER_TOOLS})
 
     if ("windowless" IN_LIST FEATURES)
         set(SCITER_BIN ${SOURCE_PATH}/bin.lite/windows/${SCITER_ARCH})
@@ -104,8 +105,6 @@ elseif(VCPKG_TARGET_IS_WINDOWS)
     file(INSTALL ${SCITER_BIN}/sciter.dll DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
     file(INSTALL ${SCITER_BIN}/sciter.dll DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
 
-    file(INSTALL ${SCITER_BIN}/sciter-sqlite.dll DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
-    file(INSTALL ${SCITER_BIN}/sciter-sqlite.dll DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
-
     message(WARNING "Sciter requires manual deployment of the correct DLL files.")
+	
 endif()

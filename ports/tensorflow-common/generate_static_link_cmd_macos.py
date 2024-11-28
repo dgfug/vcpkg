@@ -2,14 +2,15 @@ import os.path
 import re
 import sys
 
-version = sys.argv[2]
-lib_suffix = "" if len(sys.argv) < 4 else sys.argv[3]
+params_path = sys.argv[2]
+version = sys.argv[3]
+lib_suffix = "" if len(sys.argv) < 5 else sys.argv[4]
 
 with open(sys.argv[1], "r") as f_in:
     with open("static_link.sh", "w") as f_out:
-        if os.path.isfile(f"libtensorflow_framework.{version}.dylib-2.params"):
+        if os.path.isfile(f"{params_path}/libtensorflow_framework.{version}.dylib-2.params"):
             p_cd = re.compile(r"^\((cd .*) && \\$")
-            p_linker = re.compile(fr"^\s*.+cc_wrapper.sh.+(@bazel-out\S+libtensorflow{lib_suffix}\.\d\.\d\.\d\.dylib-2\.params).*")
+            p_linker = re.compile(fr"^\s*.+cc_wrapper.sh.+(@bazel-out\S+libtensorflow{lib_suffix}\.\d+\.\d+\.\d+\.dylib-2\.params).*")
             f_out.write("#!/bin/bash\n# note: ar/binutils version 2.27 required to support output files > 4GB\n")
             env = []
             for line in f_in:
@@ -28,8 +29,8 @@ with open(sys.argv[1], "r") as f_in:
         else:
             # old behaviour (still on some platforms): inline all parameters instead of using -2.params file
             p_cd = re.compile(r"^\((cd .*) && \\$")
-            p_linker1 = re.compile(fr"^.*cc_wrapper.sh.+-shared.+-o (bazel-out\S+libtensorflow{lib_suffix}\.\d\.\d\.\d\.dylib)")
-            p_linker2 = re.compile("^.*cc_wrapper.sh.+-shared.+-o (bazel-out\\S+libtensorflow_framework\\.\\d\\.\\d\\.\\d\\.dylib)")
+            p_linker1 = re.compile(fr"^.*cc_wrapper.sh.+-shared.+-o (bazel-out\S+libtensorflow{lib_suffix}\.\d+\.\d+\.\d+\.dylib)")
+            p_linker2 = re.compile("^.*cc_wrapper.sh.+-shared.+-o (bazel-out\\S+libtensorflow_framework\\.\\d+\\.\\d+\\.\\d+\\.dylib)")
             f_out.write("#!/bin/bash\n# note: ar/binutils version 2.27 required to support output files > 4GB\n")
             env = []
             parts = None

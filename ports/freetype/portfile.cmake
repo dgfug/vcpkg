@@ -1,36 +1,42 @@
-set(FT_VERSION 2.11.0)
+if("subpixel-rendering" IN_LIST FEATURES)
+    set(SUBPIXEL_RENDERING_PATCH "subpixel-rendering.patch")
+endif()
 
-vcpkg_from_sourceforge(
+string(REPLACE "." "-" VERSION_HYPHEN "${VERSION}")
+
+vcpkg_from_gitlab(
+    GITLAB_URL https://gitlab.freedesktop.org/
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO freetype/freetype2
-    REF ${FT_VERSION}
-    FILENAME freetype-${FT_VERSION}.tar.xz
-    SHA512 bf1991f3c382832586be1d21ae73c20840ee8546807ba60d0eb0215134545656c0c8de488f27357d4a4f6497d7cb540998cda98ec59061a3e640036fb209147d
+    REPO freetype/freetype
+    REF "VER-${VERSION_HYPHEN}"
+    SHA512  fccfaa15eb79a105981bf634df34ac9ddf1c53550ec0b334903a1b21f9f8bf5eb2b3f9476e554afa112a0fca58ec85ab212d674dfd853670efec876bacbe8a53
+    HEAD_REF master
     PATCHES
         0003-Fix-UWP.patch
-        fix-bzip2-pc.patch  # we have a bzip2 file that we can use - https://gitlab.freedesktop.org/freetype/freetype/-/commit/b2aeca5fda870751f3c9d645e0dca4c80fa1ae5a
         brotli-static.patch
+        bzip2.patch
         fix-exports.patch
-        fix-2.11-msvc-build.patch
+        ${SUBPIXEL_RENDERING_PATCH}
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
-        zlib        FT_WITH_ZLIB
-        bzip2       FT_WITH_BZIP2
-        png         FT_WITH_PNG
-        brotli      FT_WITH_BROTLI
+        zlib          FT_REQUIRE_ZLIB
+        bzip2         FT_REQUIRE_BZIP2
+        error-strings FT_ENABLE_ERROR_STRINGS
+        png           FT_REQUIRE_PNG
+        brotli        FT_REQUIRE_BROTLI
     INVERTED_FEATURES
-        zlib        CMAKE_DISABLE_FIND_PACKAGE_ZLIB
-        bzip2       CMAKE_DISABLE_FIND_PACKAGE_BZip2
-        png         CMAKE_DISABLE_FIND_PACKAGE_PNG
-        brotli      CMAKE_DISABLE_FIND_PACKAGE_BrotliDec
+        zlib          FT_DISABLE_ZLIB
+        bzip2         FT_DISABLE_BZIP2
+        png           FT_DISABLE_PNG
+        brotli        FT_DISABLE_BROTLI
 )
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        -DCMAKE_DISABLE_FIND_PACKAGE_HarfBuzz=ON
+        -DFT_DISABLE_HARFBUZZ=ON
         ${FEATURE_OPTIONS}
 )
 
@@ -54,7 +60,7 @@ string(REPLACE "\${_IMPORT_PREFIX}/lib/brotlidec.lib" [[\$<\$<NOT:\$<CONFIG:DEBU
 file(WRITE ${CURRENT_PACKAGES_DIR}/share/freetype/freetype-targets.cmake "${CONFIG_MODULE}")
 
 find_library(FREETYPE_DEBUG NAMES freetyped PATHS "${CURRENT_PACKAGES_DIR}/debug/lib/" NO_DEFAULT_PATH)
-if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/freetype2.pc")
+if(NOT VCPKG_BUILD_TYPE)
     file(READ "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/freetype2.pc" _contents)
     if(FREETYPE_DEBUG)
         string(REPLACE "-lfreetype" "-lfreetyped" _contents "${_contents}")
@@ -62,41 +68,31 @@ if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/freetype2.pc")
     string(REPLACE "-I\${includedir}/freetype2" "-I\${includedir}" _contents "${_contents}")
     file(WRITE "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/freetype2.pc" "${_contents}")
 endif()
-if(EXISTS "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/freetype2.pc")
-    file(READ "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/freetype2.pc" _contents)
-    string(REPLACE "-I\${includedir}/freetype2" "-I\${includedir}" _contents "${_contents}")
-    file(WRITE "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/freetype2.pc" "${_contents}")
-endif()
+
+file(READ "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/freetype2.pc" _contents)
+string(REPLACE "-I\${includedir}/freetype2" "-I\${includedir}" _contents "${_contents}")
+file(WRITE "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/freetype2.pc" "${_contents}")
+
 
 vcpkg_fixup_pkgconfig()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    if("zlib" IN_LIST FEATURES)
-        set(USE_ZLIB ON)
-    endif()
-
-    if("bzip2" IN_LIST FEATURES)
-        set(USE_BZIP2 ON)
-    endif()
-
-    if("png" IN_LIST FEATURES)
-        set(USE_PNG ON)
-    endif()
-
-    if("brotli" IN_LIST FEATURES)
-        set(USE_BROTLI ON)
-    endif()
-
-    configure_file("${CMAKE_CURRENT_LIST_DIR}/vcpkg-cmake-wrapper.cmake"
-        "${CURRENT_PACKAGES_DIR}/share/${PORT}/vcpkg-cmake-wrapper.cmake" @ONLY)
+if(VCPKG_TARGET_IS_WINDOWS)
+  set(dll_linkage 1)
+  if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    set(dll_linkage 0)
+  endif()
+  vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/freetype/config/public-macros.h" "#elif defined( DLL_IMPORT )" "#elif ${dll_linkage}")
 endif()
 
-file(COPY
-    "${SOURCE_PATH}/docs/FTL.TXT"
-    "${SOURCE_PATH}/docs/GPLv2.TXT"
-    DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}"
+configure_file("${CMAKE_CURRENT_LIST_DIR}/vcpkg-cmake-wrapper.cmake"
+    "${CURRENT_PACKAGES_DIR}/share/${PORT}/vcpkg-cmake-wrapper.cmake" @ONLY)
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+vcpkg_install_copyright(
+    FILE_LIST
+        "${SOURCE_PATH}/LICENSE.TXT"
+        "${SOURCE_PATH}/docs/FTL.TXT"
+        "${SOURCE_PATH}/docs/GPLv2.TXT"
 )
-file(INSTALL "${SOURCE_PATH}/LICENSE.TXT" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME "copyright")

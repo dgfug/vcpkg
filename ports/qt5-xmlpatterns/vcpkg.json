@@ -1,8 +1,8 @@
 {
   "name": "qt5-xmlpatterns",
-  "version-string": "5.15.2",
-  "port-version": 1,
-  "description": "Qt5 XML Patterns Module - Support for XPath, XQuery, XSLT and XML schema validation",
+  "version": "5.15.16",
+  "description": "The Qt XML Patterns module provides support for XPath, XQuery, XSLT, and XML Schema validation.",
+  "license": null,
   "dependencies": [
     {
       "name": "qt5-base",

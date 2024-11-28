@@ -1,26 +1,37 @@
-set(VCPKG_LIBRARY_LINKAGE static)
+if(VCPKG_TARGET_IS_WINDOWS)
+    vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+endif()
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OpenVPN/openvpn3
-    REF release/3.4.1
-    SHA512 2d0a7d2d48047c969ba1cb49b34d51c85dd82ae97296d7c096ead13a8e7cc69fa3908262228e29d93f60b7273814d8ef5a402a5d401cd7f91370868d5d308678
+    REF "release/${VERSION}"
+    SHA512 f096644078c10022685c1a8f7e0afddf352b4a5c229a772d24adbc6ec3f44e27501beabd28c4da1b6b182ae9d220b80865757693d52d085817d42f2322b71213
     HEAD_REF master
+    PATCHES
+        dependencies.diff
+        mbedtls-compat.diff
+        only-library.diff
+)
+file(REMOVE_RECURSE "${SOURCE_PATH}/deps")
+
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        -DBUILD_SWIG_LIB=OFF
+        -DBUILD_TESTING=OFF
+        -DCMAKE_DISABLE_FIND_PACKAGE_Python3=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_SWIG=ON
+        -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON
+        -DUSE_MBEDTLS=1   # vcpkg legacy choice
 )
 
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt DESTINATION ${SOURCE_PATH})
+vcpkg_cmake_install()
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
-)
+file(COPY "${SOURCE_PATH}/client/ovpncli.hpp" DESTINATION "${CURRENT_PACKAGES_DIR}/include/openvpn")
+file(COPY "${SOURCE_PATH}/openvpn" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
 
-vcpkg_install_cmake()
-
-file(COPY ${SOURCE_PATH}/openvpn DESTINATION ${CURRENT_PACKAGES_DIR}/include/)
-file(COPY ${SOURCE_PATH}/client/ovpncli.hpp DESTINATION ${CURRENT_PACKAGES_DIR}/include/openvpn/)
-
-file(GLOB_RECURSE HEADERS ${CURRENT_PACKAGES_DIR}/include/openvpn/*)
+file(GLOB_RECURSE HEADERS "${CURRENT_PACKAGES_DIR}/include/openvpn/*")
 foreach(HEADER IN LISTS HEADERS)
     file(READ "${HEADER}" _contents)
     string(REPLACE "defined(USE_ASIO)" "1" _contents "${_contents}")
@@ -30,6 +41,9 @@ foreach(HEADER IN LISTS HEADERS)
     file(WRITE "${HEADER}" "${_contents}")
 endforeach()
 
-file(INSTALL
-    ${SOURCE_PATH}/COPYRIGHT.AGPLV3
-    DESTINATION ${CURRENT_PACKAGES_DIR}/share/openvpn3 RENAME copyright)
+vcpkg_cmake_config_fixup(PACKAGE_NAME unofficial-openvpn3)
+# Transitional
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/unofficial-openvpnConfig.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/unofficial-openvpn")
+
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.rst" "${SOURCE_PATH}/COPYRIGHT.AGPLV3")

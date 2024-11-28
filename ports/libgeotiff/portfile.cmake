@@ -1,14 +1,11 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OSGeo/libgeotiff
-    REF  7da5bacae7814c65ebb78f0b64e1141fbcb3de1e #v1.7.0
-    SHA512 36047778fbbb4a533a7b65e7b32ab8c0955f59b95417b68b68e7ddd398191445e730e00271756213bf657cbf7cd5eb028b25d4b0741e5b309c78c207b4ec01c6
+    REF  ${VERSION}
+    SHA512 4cbe221ae72e1ebe8e0cf7036c2bca019633f82cab125dd5b78e524e80d2c05cbfced89f5dc35c7d6d8d1253cc0aaad751150353f773813a037d53ddaa3427f7
     HEAD_REF master
     PATCHES
         cmakelists.patch
-        geotiff-config.patch
-        fix-staticbuild.patch
-        skip-doc-install.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -20,12 +17,12 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}/libgeotiff"
     OPTIONS
-        -DGEOTIFF_BIN_SUBDIR=bin
-        -DGEOTIFF_DATA_SUBDIR=share
         -DWITH_TIFF=1
         -DHAVE_TIFFOPEN=1
         -DHAVE_TIFFMERGEFIELDINFO=1
         -DCMAKE_MACOSX_BUNDLE=0
+        -DCMAKE_INSTALL_MANDIR=share/unused
+        -DCMAKE_INSTALL_DOCDIR=share/unused
         ${FEATURE_OPTIONS}
 )
 
@@ -36,13 +33,19 @@ if(WITH_UTILITIES)
 endif()
 
 vcpkg_copy_pdbs()
-vcpkg_cmake_config_fixup(PACKAGE_NAME GeoTIFF)
+vcpkg_cmake_config_fixup(PACKAGE_NAME geotiff)
+vcpkg_fixup_pkgconfig()
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/GeoTIFF/geotiff-config.cmake" "if (GeoTIFF_USE_STATIC_LIBS)" "if (1)")
     file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/bin" "${CURRENT_PACKAGES_DIR}/bin")
 endif()
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include" "${CURRENT_PACKAGES_DIR}/debug/share")
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+    "${CURRENT_PACKAGES_DIR}/debug/share"
+    "${CURRENT_PACKAGES_DIR}/share/unused"
+)
 
-file(INSTALL "${SOURCE_PATH}/libgeotiff/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/libgeotiff/LICENSE")

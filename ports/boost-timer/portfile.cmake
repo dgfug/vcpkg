@@ -3,15 +3,13 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO boostorg/timer
-    REF boost-1.77.0
-    SHA512 39b4081fc8a19565493687c7c438597ad14b93523a901b2909412c41fa46bc97d300caa509d4651b5985ec9c7f4272be888b4570c0aff622bdb89ddc75af2bff
+    REF boost-${VERSION}
+    SHA512 464cde448fcd3254f3087f51ef4cfce6624f8e73f71e0c16f92471544df0559056c30a073b259bc3201cfea6452d2648ea576c0e30eece8b1fc37375ee612a4f
     HEAD_REF master
 )
 
-if(NOT DEFINED CURRENT_HOST_INSTALLED_DIR)
-    message(FATAL_ERROR "boost-timer requires a newer version of vcpkg in order to build.")
-endif()
-include(${CURRENT_HOST_INSTALLED_DIR}/share/boost-build/boost-modular-build.cmake)
-boost_modular_build(SOURCE_PATH ${SOURCE_PATH})
-include(${CURRENT_INSTALLED_DIR}/share/boost-vcpkg-helpers/boost-modular-headers.cmake)
-boost_modular_headers(SOURCE_PATH ${SOURCE_PATH})
+set(FEATURE_OPTIONS "")
+boost_configure_and_install(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS ${FEATURE_OPTIONS}
+)

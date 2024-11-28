@@ -1,56 +1,54 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO gdraheim/zziplib
-    REF 24a6c6de1956189bffcd8dffd2ef3197c6f3df29 # v0.13.71
-    SHA512 246ee1d93f3f8a6889e9ab362e04e6814813844f2cdea0a782910bf07ca55ecd6d8b1c456b4180935464cebf291e7849af27ac0ed5cc080de5fb158f9f3aeffb
+    REF "v${VERSION}"
+    SHA512 e96771c310a1a9eb227027e8c2a495409c01dd273b483b3a04119d6a273cce7c88ba77c192fcde5e85d0a37c847a0df8e521f460d00920e62153400f0743ea78
     PATCHES
-        install-dll-to-proper-folder.patch
         no-release-postfix.patch
-        fix-export-define.patch
-        always-find-unixcommands-on-unix.patch
 )
 
-if(VCPKG_CRT_LINKAGE STREQUAL "static")
-    set(MSVC_STATIC_RUNTIME ON)
-else()
-    set(MSVC_STATIC_RUNTIME OFF)
-endif()
+string(COMPARE EQUAL VCPKG_CRT_LINKAGE "static" MSVC_STATIC_RUNTIME)
+string(COMPARE EQUAL VCPKG_LIBRARY_LINKAGE "static" BUILD_STATIC_LIBS)
 
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    set(BUILD_STATIC_LIBS ON)
-else()
-    set(BUILD_STATIC_LIBS OFF)
-endif()
-
-if(VCPKG_TARGET_IS_WINDOWS)
-    set(ZZIPLIBTOOL OFF)
-endif()
-
-set(VCPKG_C_FLAGS "${VCPKG_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS")
-set(VCPKG_CXX_FLAGS "${VCPKG_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS")
-
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        -DBUILD_STATIC_LIBS=${BUILD_STATIC_LIBS}
+        "-DCMAKE_PROJECT_INCLUDE=${CMAKE_CURRENT_LIST_DIR}/cmake-project-include.cmake"
         -DMSVC_STATIC_RUNTIME=${MSVC_STATIC_RUNTIME}
-        -DZZIPMMAPPED=OFF
-        -DZZIPFSEEKO=OFF
-        -DZZIPWRAP=OFF
-        -DZZIPSDL=OFF
+        -DZZIP_COMPAT=OFF
+        -DZZIP_LIBLATEST=OFF
+        -DZZIP_LIBTOOL=OFF
+        -DZZIP_TESTCVE=OFF
         -DZZIPBINS=OFF
-        -DZZIPTEST=OFF
         -DZZIPDOCS=OFF
-        -DZZIPCOMPAT=OFF
-        -DZZIPLIBTOOL=${ZZIPLIBTOOL}
+        -DZZIPFSEEKO=OFF
+        -DZZIPMMAPPED=OFF
+        -DZZIPSDL=OFF
+        -DZZIPTEST=OFF
+        -DZZIPWRAP=OFF
+)
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(CONFIG_PATH "lib/cmake/zziplib")
+vcpkg_fixup_pkgconfig()
+
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+    "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/zzipfseeko.pc"
+    "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/zzipmmapped.pc"
+    "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/zzipfseeko.pc"
+    "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/zzipmmapped.pc"
 )
 
-vcpkg_install_cmake()
+file(STRINGS "${CURRENT_PACKAGES_DIR}/include/zzip/_config.h" have_stdint_h REGEX "^#define ZZIP_HAVE_STDINT_H 1")
+if(have_stdint_h)
+    file(REMOVE "${CURRENT_PACKAGES_DIR}/include/zzip/stdint.h")
+endif()
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-
-# Handle copyright
-file(INSTALL ${SOURCE_PATH}/COPYING.LIB DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
-
-vcpkg_fixup_pkgconfig()
+vcpkg_install_copyright(COMMENT [[
+zziplib is shipping under a dual MPL / LGPL license where each of them
+is separate and restrictions apply alternatively.
+]]
+    FILE_LIST
+        "${SOURCE_PATH}/docs/COPYING.LIB"
+        "${SOURCE_PATH}/docs/COPYING.MPL"
+)

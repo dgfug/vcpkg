@@ -1,14 +1,18 @@
-set(CAIRO_VERSION 1.17.4)
+set(EXTRA_PATCHES "")
+if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
+    list(APPEND EXTRA_PATCHES fix_clang-cl_build.patch)
+endif()
 
 vcpkg_from_gitlab(
-    GITLAB_URL https://gitlab.freedesktop.org
     OUT_SOURCE_PATH SOURCE_PATH
+    GITLAB_URL https://gitlab.freedesktop.org
     REPO cairo/cairo
-    REF 156cd3eaaebfd8635517c2baf61fcf3627ff7ec2 #v1.17.4
-    SHA512 2c516ad3ffe56cf646b2435d6ef3cf25e8c05aeb13d95dd18a7d0510d134d9990cba1b376063352ff99483cfc4e5d2af849afd2f9538f9136f22d44d34be362c
-    HEAD_REF master
-    PATCHES 0001-meson-fix-macOS-build-and-add-macOS-ci.patch
-            cairo_static_fix.patch
+    REF "${VERSION}"
+    SHA512 5731eaa48857561aad023214ebb7be70344579a4bc75d00c46f8c622b4d34be7f79ab02e2cd54a419086490a3bf31aafa2418d873833b475b9824e3f2f5b17b6
+    PATCHES
+        cairo_add_lzo_feature_option.patch
+        msvc-convenience.diff
+        ${EXTRA_PATCHES}
 )
 
 if("fontconfig" IN_LIST FEATURES)
@@ -24,10 +28,7 @@ else()
 endif()
 
 if ("x11" IN_LIST FEATURES)
-    if (VCPKG_TARGET_IS_WINDOWS)
-        message(FATAL_ERROR "Feature x11 only support UNIX.")
-    endif()
-    message(WARNING "You will need to install Xorg dependencies to use feature x11:\napt install libx11-dev libxft-dev\n")
+    message(WARNING "You will need to install Xorg dependencies to use feature x11:\nsudo apt install libx11-dev libxft-dev libxext-dev\n")
     list(APPEND OPTIONS -Dxlib=enabled)
 else()
     list(APPEND OPTIONS -Dxlib=disabled)
@@ -36,12 +37,15 @@ list(APPEND OPTIONS -Dxcb=disabled)
 list(APPEND OPTIONS -Dxlib-xcb=disabled)
 
 if("gobject" IN_LIST FEATURES)
-    if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-        message(FATAL_ERROR "Feature gobject currently only supports dynamic build.")
-    endif()
     list(APPEND OPTIONS -Dglib=enabled)
 else()
     list(APPEND OPTIONS -Dglib=disabled)
+endif()
+
+if("lzo" IN_LIST FEATURES)
+    list(APPEND OPTIONS -Dlzo=enabled)
+else()
+    list(APPEND OPTIONS -Dlzo=disabled)
 endif()
 
 if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
@@ -49,41 +53,29 @@ if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
 endif()
 
 vcpkg_configure_meson(
-    SOURCE_PATH ${SOURCE_PATH}
-    OPTIONS ${OPTIONS}
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        ${OPTIONS}
         -Dtests=disabled
         -Dzlib=enabled
         -Dpng=enabled
         -Dspectre=auto
-        -Dsymbol-lookup=disabled
         -Dgtk2-utils=disabled
+        -Dsymbol-lookup=disabled
 )
 vcpkg_install_meson()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-set(_file "${CURRENT_PACKAGES_DIR}/include/cairo/cairo.h")
-file(READ ${_file} CAIRO_H)
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    string(REPLACE "defined (CAIRO_WIN32_STATIC_BUILD)" "1" CAIRO_H "${CAIRO_H}")
-else()
-    string(REPLACE "defined (CAIRO_WIN32_STATIC_BUILD)" "0" CAIRO_H "${CAIRO_H}")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/cairo/cairo.h" "defined(CAIRO_WIN32_STATIC_BUILD)" "1")
 endif()
-file(WRITE ${_file} "${CAIRO_H}")
-
-# Handle copyright
-file(INSTALL "${SOURCE_PATH}/COPYING" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
 
 vcpkg_copy_pdbs()
 vcpkg_fixup_pkgconfig()
 
-#TODO: Fix script
-#set(TOOLS)
-#if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/cairo-trace${VCPKG_TARGET_EXECUTABLE_SUFFIX}")
-#    list(APPEND TOOLS cairo-trace) # sh script which needs to be fixed due to absolute paths in it.
-#endif()
-#vcpkg_copy_tools(TOOL_NAMES ${TOOLS} AUTO_CLEAN)
-
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static" OR NOT VCPKG_TARGET_IS_WINDOWS)
     file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
 endif()
+
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/COPYING" "${SOURCE_PATH}/COPYING-LGPL-2.1" "${SOURCE_PATH}/COPYING-MPL-1.1")

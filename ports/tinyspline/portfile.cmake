@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO msteinbeck/tinyspline
-    REF v0.3.0
-    SHA512 9B02ACA5C56341E8DDC057E2AEB78632695DAC3A4D2C628A43028E4216FC79942F68DD3105B1B92ACAE0D009109C56EC437AB638FB7334EBDD68543BE2D8D7F6
+    REF "v${VERSION}"
+    SHA512 e81d95e9fa7ec33b70d541695ab18b8e9c2a92e7c66877aa9957526e2ac144558b47409e1a1b721f7702a8462a22f360d1ec96b0023db108da13f8c37b8c0c20
     HEAD_REF master
 )
 
@@ -18,7 +18,7 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/tinyspline DO_NOT_DELETE_PARENT_CONFIG_PATH)
-vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/tinysplinecxx)
+vcpkg_cmake_config_fixup(PACKAGE_NAME tinysplinecxx CONFIG_PATH lib/cmake/tinysplinecxx)
 vcpkg_fixup_pkgconfig()
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL static)
